@@ -30,12 +30,12 @@ export function HealthCheck() {
         size="sm"
         onClick={checkHealth}
         disabled={isChecking}
-        className={`flex items-center space-x-2 ${
+        className={`flex items-center space-x-2 shadow-lg hover:shadow-xl transition-all duration-200 backdrop-blur-sm ${
           status === "healthy"
-            ? "text-green-600 border-green-600"
+            ? "text-green-600 border-green-600 bg-green-50/50"
             : status === "unhealthy"
-            ? "text-red-600 border-red-600"
-            : ""
+            ? "text-red-600 border-red-600 bg-red-50/50"
+            : "bg-white/50"
         }`}
       >
         <Activity className="h-4 w-4" />

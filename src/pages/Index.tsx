@@ -8,7 +8,7 @@ const Index = () => {
   const [activeTab, setActiveTab] = useState<"query" | "upload">("query");
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
       <Navigation />
       
       <main className="container mx-auto px-4 py-8">
@@ -16,27 +16,29 @@ const Index = () => {
           <div className="mb-8 flex justify-center space-x-4">
             <button
               onClick={() => setActiveTab("query")}
-              className={`px-4 py-2 rounded-lg transition-colors ${
+              className={`px-6 py-3 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg ${
                 activeTab === "query"
-                  ? "bg-primary text-white"
-                  : "bg-white text-gray-600 hover:bg-gray-100"
+                  ? "bg-primary text-white transform hover:-translate-y-0.5"
+                  : "bg-white text-gray-600 hover:bg-gray-50"
               }`}
             >
               Query
             </button>
             <button
               onClick={() => setActiveTab("upload")}
-              className={`px-4 py-2 rounded-lg transition-colors ${
+              className={`px-6 py-3 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg ${
                 activeTab === "upload"
-                  ? "bg-primary text-white"
-                  : "bg-white text-gray-600 hover:bg-gray-100"
+                  ? "bg-primary text-white transform hover:-translate-y-0.5"
+                  : "bg-white text-gray-600 hover:bg-gray-50"
               }`}
             >
               Upload File
             </button>
           </div>
 
-          {activeTab === "query" ? <QueryForm /> : <FileUpload />}
+          <div className="transform transition-all duration-200">
+            {activeTab === "query" ? <QueryForm /> : <FileUpload />}
+          </div>
         </div>
       </main>
 

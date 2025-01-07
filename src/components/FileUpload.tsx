@@ -54,15 +54,15 @@ export function FileUpload() {
   };
 
   return (
-    <div className="w-full max-w-2xl mx-auto p-6 space-y-6 bg-white rounded-lg shadow-lg animate-fade-in">
+    <div className="w-full max-w-2xl mx-auto p-8 space-y-6 bg-white rounded-xl shadow-xl backdrop-blur-sm bg-white/50 animate-fade-in">
       <div className="text-center">
         <Button
           variant="outline"
-          className="w-full h-32 border-dashed"
+          className="w-full h-32 border-dashed border-2 hover:border-primary/50 hover:bg-gray-50/50 transition-all duration-200 shadow-sm hover:shadow-md"
           disabled={isUploading}
         >
           <label className="cursor-pointer w-full h-full flex flex-col items-center justify-center">
-            <Upload className="h-8 w-8 mb-2" />
+            <Upload className="h-8 w-8 mb-2 text-primary" />
             <span className="text-sm text-gray-600">
               {isUploading ? "Uploading..." : "Click to upload .txt or .csv"}
             </span>
