@@ -25,9 +25,10 @@ export const queryAPI = async (params: QueryRequest): Promise<QueryResponse> => 
   return response.data;
 };
 
-export const uploadFileAPI = async (file: File) => {
+export const uploadFileAPI = async (file: File, uploadType: "initial" | "incremental") => {
   const formData = new FormData();
   formData.append("file", file);
+  formData.append("type", uploadType);
 
   const response = await api.post("/insert", formData, {
     headers: { "Content-Type": "multipart/form-data" },
