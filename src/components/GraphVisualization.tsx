@@ -7,6 +7,20 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Network as NetworkIcon } from "lucide-react";
 
+// Define types for nodes and edges
+interface Node {
+  id: string;
+  label: string;
+}
+
+interface Edge {
+  id: string;
+  from: string;
+  to: string;
+  label: string;
+  arrows: string;
+}
+
 export function GraphVisualization() {
   const [showGraph, setShowGraph] = useState(false);
   const networkContainer = useRef<HTMLDivElement>(null);
@@ -40,17 +54,18 @@ export function GraphVisualization() {
 
   useEffect(() => {
     if (graphData && networkContainer.current) {
-      // Process nodes
-      const nodes = new DataSet(
+      // Process nodes with proper typing
+      const nodes = new DataSet<Node>(
         graphData.data.nodes.map((node) => ({
           id: node.id,
           label: node.label[0] + "\n" + JSON.stringify(node.properties),
         }))
       );
 
-      // Process edges
-      const edges = new DataSet(
-        graphData.data.edges.map((edge) => ({
+      // Process edges with proper typing and unique IDs
+      const edges = new DataSet<Edge>(
+        graphData.data.edges.map((edge, index) => ({
+          id: `e${index}`, // Add unique ID for each edge
           from: edge.source,
           to: edge.target,
           label: edge.label,
