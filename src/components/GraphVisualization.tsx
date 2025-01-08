@@ -1,16 +1,30 @@
 import { useState, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { Network } from "vis-network";
+import { DataSet } from "vis-data";
 import { getGraphAPI } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Network } from "lucide-react";
-import CytoscapeComponent from 'react-cytoscapejs';
-import Cytoscape from 'cytoscape';
+import { Network as NetworkIcon } from "lucide-react";
+
+// Define types for nodes and edges
+interface Node {
+  id: string;
+  label: string;
+}
+
+interface Edge {
+  id: string;
+  from: string;
+  to: string;
+  label: string;
+  arrows: string;
+}
 
 export function GraphVisualization() {
   const [showGraph, setShowGraph] = useState(false);
+  const networkContainer = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
-  const cyRef = useRef<Cytoscape.Core | null>(null);
 
   const { data: graphData, isLoading, error } = useQuery({
     queryKey: ["graph"],
@@ -38,65 +52,57 @@ export function GraphVisualization() {
     }
   }, [error, toast]);
 
-  const elements = graphData?.data ? [
-    ...graphData.data.nodes.map((node: any) => ({
-      data: { 
-        id: node.id,
-        label: node.label 
-      }
-    })),
-    ...graphData.data.edges.map((edge: any) => ({
-      data: {
-        id: `e${edge.source}-${edge.target}`,
-        source: edge.source.replace(/"/g, ''),
-        target: edge.target.replace(/"/g, ''),
-        label: edge.label.replace(/"/g, '')
-      }
-    }))
-  ] : [];
+  useEffect(() => {
+    if (graphData && networkContainer.current) {
+      // Process nodes with proper typing
+      const nodes = new DataSet<Node>(
+        graphData.data.nodes.map((node) => ({
+          id: node.id,
+          label: node.label[0] + "\n" + JSON.stringify(node.properties),
+        }))
+      );
 
-  const layout = {
-    name: 'cose',
-    padding: 50,
-    animate: false,
-    nodeDimensionsIncludeLabels: true,
-    refresh: 20,
-    fit: true,
-    boundingBox: undefined,
-    randomize: true
-  };
+      // Process edges with proper typing and unique IDs
+      const edges = new DataSet<Edge>(
+        graphData.data.edges.map((edge, index) => ({
+          id: `e${index}`, // Add unique ID for each edge
+          from: edge.source,
+          to: edge.target,
+          label: edge.label,
+          arrows: "to",
+        }))
+      );
 
-  const stylesheet = [
-    {
-      selector: 'node',
-      style: {
-        'background-color': '#2563EB',
-        'label': 'data(label)',
-        'color': '#000000',
-        'text-valign': 'center',
-        'text-halign': 'center',
-        'width': 50,
-        'height': 50,
-        'text-wrap': 'wrap',
-        'font-size': '12px',
-        'text-max-width': '80px'
-      }
-    },
-    {
-      selector: 'edge',
-      style: {
-        'width': 2,
-        'line-color': '#94a3b8',
-        'target-arrow-color': '#94a3b8',
-        'target-arrow-shape': 'triangle',
-        'curve-style': 'bezier',
-        'label': 'data(label)',
-        'text-rotation': 'autorotate',
-        'font-size': '10px',
-        'text-margin-y': -10
-      }
+      const options = {
+        nodes: {
+          shape: "circle",
+          size: 20,
+          font: { size: 12 },
+          color: {
+            background: "#2563EB",
+            border: "#1d4ed8",
+            highlight: { background: "#3b82f6", border: "#2563EB" },
+          },
+        },
+        edges: {
+          arrows: "to",
+          font: { align: "middle" },
+          length: 200,
+          color: { color: "#94a3b8", highlight: "#64748b" },
+        },
+        physics: {
+          stabilization: true,
+        },
+        height: "600px",
+      };
+
+      const network = new Network(networkContainer.current, { nodes, edges }, options);
+
+      return () => {
+        network.destroy();
+      };
     }
-  ];
+  }, [graphData]);
 
   return (
     <div className="w-full max-w-4xl mx-auto mt-8">
@@ -104,7 +110,7 @@ export function GraphVisualization() {
         onClick={handleToggleGraph}
         className="w-full bg-gradient-to-r from-primary to-purple-600 text-white shadow-lg hover:shadow-xl transition-all duration-200"
       >
-        <Network className="mr-2 h-4 w-4" />
+        <NetworkIcon className="mr-2 h-4 w-4" />
         {showGraph ? "Hide Network Graph" : "Show Network Graph"}
       </Button>
 
@@ -115,28 +121,7 @@ export function GraphVisualization() {
               <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary" />
             </div>
           ) : (
-            <div className="w-full h-[600px] border border-gray-200 rounded-lg">
-              <CytoscapeComponent
-                elements={elements}
-                layout={layout}
-                stylesheet={stylesheet}
-                style={{ width: '100%', height: '100%' }}
-                cy={(cy) => { 
-                  cyRef.current = cy;
-                  cy.on('tap', 'node', (evt) => {
-                    const node = evt.target;
-                    console.log('Tapped node:', node.id());
-                  });
-                  cy.on('tap', 'edge', (evt) => {
-                    const edge = evt.target;
-                    console.log('Tapped edge:', edge.id());
-                  });
-                }}
-                userZoomingEnabled={true}
-                userPanningEnabled={true}
-                boxSelectionEnabled={false}
-              />
-            </div>
+            <div ref={networkContainer} className="w-full h-[600px] border border-gray-200 rounded-lg" />
           )}
         </div>
       )}
