@@ -67,9 +67,9 @@ export function GraphVisualization() {
       const edges = new DataSet<Edge>(
         graphData.data.edges.map((edge: any, index: number) => ({
           id: `e${index}`,
-          from: edge.source.replace(/"/g, ''), // Remove quotes
-          to: edge.target.replace(/"/g, ''), // Remove quotes
-          label: edge.label.replace(/"/g, ''), // Remove quotes
+          from: edge.source.replace(/"/g, ''),
+          to: edge.target.replace(/"/g, ''),
+          label: edge.label.replace(/"/g, ''),
           arrows: "to",
         }))
       );
@@ -96,6 +96,7 @@ export function GraphVisualization() {
           },
           color: { color: "#94a3b8", highlight: "#64748b" },
           smooth: {
+            enabled: true, // Added the required 'enabled' property
             type: "cubicBezier",
             forceDirection: "horizontal",
             roundness: 0.4
