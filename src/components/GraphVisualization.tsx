@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Network as NetworkIcon } from "lucide-react";
 
-// Define types for nodes and edges
 interface Node {
   id: string;
   label: string;
@@ -54,21 +53,23 @@ export function GraphVisualization() {
 
   useEffect(() => {
     if (graphData && networkContainer.current) {
-      // Process nodes with proper typing
+      console.log("Graph Data:", graphData); // Debug log
+
+      // Process nodes
       const nodes = new DataSet<Node>(
-        graphData.data.nodes.map((node) => ({
+        graphData.data.nodes.map((node: any) => ({
           id: node.id,
-          label: node.label[0] + "\n" + JSON.stringify(node.properties),
+          label: node.label,
         }))
       );
 
       // Process edges with proper typing and unique IDs
       const edges = new DataSet<Edge>(
-        graphData.data.edges.map((edge, index) => ({
-          id: `e${index}`, // Add unique ID for each edge
-          from: edge.source,
-          to: edge.target,
-          label: edge.label,
+        graphData.data.edges.map((edge: any, index: number) => ({
+          id: `e${index}`,
+          from: edge.source.replace(/"/g, ''), // Remove quotes
+          to: edge.target.replace(/"/g, ''), // Remove quotes
+          label: edge.label.replace(/"/g, ''), // Remove quotes
           arrows: "to",
         }))
       );
@@ -76,8 +77,11 @@ export function GraphVisualization() {
       const options = {
         nodes: {
           shape: "circle",
-          size: 20,
-          font: { size: 12 },
+          size: 30,
+          font: { 
+            size: 14,
+            face: 'arial'
+          },
           color: {
             background: "#2563EB",
             border: "#1d4ed8",
@@ -86,14 +90,30 @@ export function GraphVisualization() {
         },
         edges: {
           arrows: "to",
-          font: { align: "middle" },
-          length: 200,
+          font: { 
+            align: "middle",
+            size: 12
+          },
           color: { color: "#94a3b8", highlight: "#64748b" },
+          smooth: {
+            type: "cubicBezier",
+            forceDirection: "horizontal",
+            roundness: 0.4
+          }
         },
         physics: {
-          stabilization: true,
+          enabled: true,
+          barnesHut: {
+            gravitationalConstant: -2000,
+            centralGravity: 0.3,
+            springLength: 200,
+            springConstant: 0.04,
+          },
         },
-        height: "600px",
+        layout: {
+          improvedLayout: true,
+          hierarchical: false
+        }
       };
 
       const network = new Network(networkContainer.current, { nodes, edges }, options);

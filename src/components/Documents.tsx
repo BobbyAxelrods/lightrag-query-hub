@@ -41,29 +41,36 @@ export function Documents() {
     return null;
   }
 
+  // Get all column names from the first document
+  const columns = documents?.data?.[0] ? Object.keys(documents.data[0]) : [];
+
   return (
     <div className="w-full max-w-4xl mx-auto p-6 space-y-6 bg-white rounded-xl shadow-lg">
       <h2 className="text-2xl font-bold text-gray-900">Uploaded Documents</h2>
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>ID</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Created At</TableHead>
-            <TableHead>Updated At</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {documents?.data?.map((doc: any) => (
-            <TableRow key={doc.id}>
-              <TableCell>{doc.id}</TableCell>
-              <TableCell>{doc.status}</TableCell>
-              <TableCell>{new Date(doc.created_at).toLocaleString()}</TableCell>
-              <TableCell>{new Date(doc.updated_at).toLocaleString()}</TableCell>
+      <div className="overflow-x-auto">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              {columns.map((column) => (
+                <TableHead key={column}>{column}</TableHead>
+              ))}
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+          </TableHeader>
+          <TableBody>
+            {documents?.data?.map((doc: any, index: number) => (
+              <TableRow key={index}>
+                {columns.map((column) => (
+                  <TableCell key={`${index}-${column}`}>
+                    {typeof doc[column] === 'object' 
+                      ? JSON.stringify(doc[column])
+                      : doc[column]}
+                  </TableCell>
+                ))}
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
     </div>
   );
 }
