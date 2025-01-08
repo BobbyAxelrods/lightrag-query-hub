@@ -20,7 +20,7 @@ const nodeTypes = {
   custom: CustomNode,
 };
 
-export function GraphVisualization() {
+function GraphContent() {
   const [showGraph, setShowGraph] = useState(false);
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
@@ -94,22 +94,28 @@ export function GraphVisualization() {
             <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary" />
           </div>
         ) : (
-          <ReactFlowProvider>
-            <ReactFlow
-              nodes={nodes}
-              edges={edges}
-              onNodesChange={onNodesChange}
-              onEdgesChange={onEdgesChange}
-              onConnect={onConnect}
-              nodeTypes={nodeTypes}
-              fitView
-              className="bg-gray-50"
-            >
-              <GraphControls onToggleGraph={handleToggleGraph} showGraph={showGraph} />
-            </ReactFlow>
-          </ReactFlowProvider>
+          <ReactFlow
+            nodes={nodes}
+            edges={edges}
+            onNodesChange={onNodesChange}
+            onEdgesChange={onEdgesChange}
+            onConnect={onConnect}
+            nodeTypes={nodeTypes}
+            fitView
+            className="bg-gray-50"
+          >
+            <GraphControls onToggleGraph={handleToggleGraph} showGraph={showGraph} />
+          </ReactFlow>
         )}
       </div>
     </div>
+  );
+}
+
+export function GraphVisualization() {
+  return (
+    <ReactFlowProvider>
+      <GraphContent />
+    </ReactFlowProvider>
   );
 }
