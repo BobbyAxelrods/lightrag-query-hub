@@ -60,7 +60,22 @@ export interface GraphResponse {
   message: string | null;
 }
 
+// Mock data for testing
+const mockGraphData: GraphResponse = {
+  status: "success",
+  data: {
+    nodes: [
+      { id: "1", label: ["Person"], properties: { name: "Alice" } },
+      { id: "2", label: ["Person"], properties: { name: "Bob" } }
+    ],
+    edges: [
+      { source: "1", target: "2", label: "KNOWS" }
+    ]
+  },
+  message: null
+};
+
 export const getGraphAPI = async (): Promise<GraphResponse> => {
-  const response = await api.get("/graph");
-  return response.data;
+  // Return mock data instead of making API call
+  return Promise.resolve(mockGraphData);
 };
