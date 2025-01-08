@@ -43,12 +43,13 @@ export function QueryForm() {
       setResult(response);
       toast({
         title: "Success",
-        description: "Query processed successfully",
+        description: response.message || "Query processed successfully",
       });
-    } catch (error) {
+    } catch (error: any) {
+      console.error("Query Error:", error);
       toast({
         title: "Error",
-        description: "Failed to process query",
+        description: error.response?.data?.detail || "Failed to process query",
         variant: "destructive",
       });
     } finally {
@@ -110,7 +111,9 @@ export function QueryForm() {
       {result && (
         <div className="mt-8 p-4 bg-gray-50 rounded-lg">
           <h3 className="font-semibold mb-2">Response:</h3>
-          <p className="text-gray-700 whitespace-pre-wrap">{result.data}</p>
+          <pre className="text-sm text-gray-700 whitespace-pre-wrap overflow-auto">
+            {JSON.stringify(result.data, null, 2)}
+          </pre>
         </div>
       )}
     </div>
