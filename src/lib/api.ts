@@ -1,7 +1,11 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "http://localhost:8001", // Updated to match your backend port
+  baseURL: "http://localhost:8001",
+  headers: {
+    "Content-Type": "application/json",
+    "Accept": "application/json",
+  },
 });
 
 // Add interceptor to log errors
@@ -27,6 +31,14 @@ export interface QueryResponse {
 
 export interface HealthResponse {
   status: string;
+}
+
+export interface Document {
+  id: string;
+  status: string;
+  created_at: string;
+  updated_at: string;
+  content: string;
 }
 
 export const queryAPI = async (params: QueryRequest): Promise<QueryResponse> => {
@@ -71,5 +83,10 @@ export interface GraphResponse {
 
 export const getGraphAPI = async (): Promise<GraphResponse> => {
   const response = await api.get("/graph");
+  return response.data;
+};
+
+export const getDocumentsAPI = async (): Promise<QueryResponse> => {
+  const response = await api.get("/documents");
   return response.data;
 };
