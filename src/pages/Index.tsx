@@ -3,6 +3,7 @@ import { Navigation } from "@/components/Navigation";
 import { QueryForm } from "@/components/QueryForm";
 import { FileUpload } from "@/components/FileUpload";
 import { HealthCheck } from "@/components/HealthCheck";
+import { GraphVisualization } from "@/components/GraphVisualization";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState<"query" | "upload">("query");
@@ -39,6 +40,8 @@ const Index = () => {
           <div className="transform transition-all duration-200">
             {activeTab === "query" ? <QueryForm /> : <FileUpload />}
           </div>
+
+          <GraphVisualization />
         </div>
       </main>
 

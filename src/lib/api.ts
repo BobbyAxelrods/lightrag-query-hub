@@ -40,3 +40,27 @@ export const healthCheckAPI = async (): Promise<HealthResponse> => {
   const response = await api.get("/health");
   return response.data;
 };
+
+export interface GraphData {
+  nodes: Array<{
+    id: string;
+    label: string[];
+    properties: Record<string, any>;
+  }>;
+  edges: Array<{
+    source: string;
+    target: string;
+    label: string;
+  }>;
+}
+
+export interface GraphResponse {
+  status: string;
+  data: GraphData;
+  message: string | null;
+}
+
+export const getGraphAPI = async (): Promise<GraphResponse> => {
+  const response = await api.get("/graph");
+  return response.data;
+};
