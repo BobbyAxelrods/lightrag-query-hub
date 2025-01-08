@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "http://localhost:8000", // Update this with your actual API URL
+  baseURL: "http://localhost:8000",
 });
 
 export interface QueryRequest {
@@ -12,7 +12,7 @@ export interface QueryRequest {
 
 export interface QueryResponse {
   status: string;
-  data: string;
+  data: any;
   message: string | null;
 }
 
@@ -28,9 +28,9 @@ export const queryAPI = async (params: QueryRequest): Promise<QueryResponse> => 
 export const uploadFileAPI = async (file: File, uploadType: "initial" | "incremental") => {
   const formData = new FormData();
   formData.append("file", file);
-  formData.append("type", uploadType);
 
-  const response = await api.post("/insert", formData, {
+  const endpoint = uploadType === "initial" ? "/upload" : "/incremental-upload";
+  const response = await api.post(endpoint, formData, {
     headers: { "Content-Type": "multipart/form-data" },
   });
   return response.data;
@@ -44,7 +44,7 @@ export const healthCheckAPI = async (): Promise<HealthResponse> => {
 export interface GraphData {
   nodes: Array<{
     id: string;
-    label: string[];
+    label: string;
     properties: Record<string, any>;
   }>;
   edges: Array<{
