@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getDocumentsAPI } from "@/lib/api";
 import {
@@ -19,6 +19,16 @@ export function Documents() {
     queryFn: getDocumentsAPI,
   });
 
+  useEffect(() => {
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to fetch documents",
+        variant: "destructive",
+      });
+    }
+  }, [error, toast]);
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -28,11 +38,6 @@ export function Documents() {
   }
 
   if (error) {
-    toast({
-      title: "Error",
-      description: "Failed to fetch documents",
-      variant: "destructive",
-    });
     return null;
   }
 
