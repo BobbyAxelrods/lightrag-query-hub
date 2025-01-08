@@ -8,6 +8,7 @@ import {
   useEdgesState,
   addEdge,
   Connection,
+  ReactFlowProvider,
 } from '@xyflow/react';
 import { getGraphAPI } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
@@ -29,34 +30,36 @@ export function GraphVisualization() {
     queryKey: ["graph"],
     queryFn: getGraphAPI,
     enabled: showGraph,
-    onSuccess: (data) => {
-      // Process nodes with custom styling
-      const processedNodes: Node[] = data.data.nodes.map((node: any) => ({
-        id: node.id,
-        type: 'custom',
-        data: { label: node.label },
-        position: { x: Math.random() * 500, y: Math.random() * 500 },
-      }));
+    meta: {
+      onSuccess: (data) => {
+        // Process nodes with custom styling
+        const processedNodes: Node[] = data.data.nodes.map((node: any) => ({
+          id: node.id,
+          type: 'custom',
+          data: { label: node.label },
+          position: { x: Math.random() * 500, y: Math.random() * 500 },
+        }));
 
-      // Process edges with proper formatting
-      const processedEdges: Edge[] = data.data.edges.map((edge: any, index: number) => ({
-        id: `e${index}`,
-        source: edge.source.replace(/"/g, ''),
-        target: edge.target.replace(/"/g, ''),
-        label: edge.label.replace(/"/g, ''),
-        animated: true,
-        style: { stroke: '#6366f1' },
-      }));
+        // Process edges with proper formatting
+        const processedEdges: Edge[] = data.data.edges.map((edge: any, index: number) => ({
+          id: `e${index}`,
+          source: edge.source.replace(/"/g, ''),
+          target: edge.target.replace(/"/g, ''),
+          label: edge.label.replace(/"/g, ''),
+          animated: true,
+          style: { stroke: '#6366f1' },
+        }));
 
-      setNodes(processedNodes);
-      setEdges(processedEdges);
-    },
-    onError: () => {
-      toast({
-        title: "Error",
-        description: "Failed to load graph data",
-        variant: "destructive",
-      });
+        setNodes(processedNodes);
+        setEdges(processedEdges);
+      },
+      onError: () => {
+        toast({
+          title: "Error",
+          description: "Failed to load graph data",
+          variant: "destructive",
+        });
+      },
     },
   });
 
@@ -91,18 +94,20 @@ export function GraphVisualization() {
             <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary" />
           </div>
         ) : (
-          <ReactFlow
-            nodes={nodes}
-            edges={edges}
-            onNodesChange={onNodesChange}
-            onEdgesChange={onEdgesChange}
-            onConnect={onConnect}
-            nodeTypes={nodeTypes}
-            fitView
-            className="bg-gray-50"
-          >
-            <GraphControls onToggleGraph={handleToggleGraph} showGraph={showGraph} />
-          </ReactFlow>
+          <ReactFlowProvider>
+            <ReactFlow
+              nodes={nodes}
+              edges={edges}
+              onNodesChange={onNodesChange}
+              onEdgesChange={onEdgesChange}
+              onConnect={onConnect}
+              nodeTypes={nodeTypes}
+              fitView
+              className="bg-gray-50"
+            >
+              <GraphControls onToggleGraph={handleToggleGraph} showGraph={showGraph} />
+            </ReactFlow>
+          </ReactFlowProvider>
         )}
       </div>
     </div>
