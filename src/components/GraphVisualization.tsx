@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import ForceGraph2D from "react-force-graph-2d";
 import { getGraphAPI } from "@/lib/api";
@@ -26,13 +26,15 @@ export function GraphVisualization() {
     }
   };
 
-  if (error) {
-    toast({
-      title: "Error",
-      description: "Failed to load graph data",
-      variant: "destructive",
-    });
-  }
+  useEffect(() => {
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to load graph data",
+        variant: "destructive",
+      });
+    }
+  }, [error, toast]);
 
   return (
     <div className="w-full max-w-2xl mx-auto mt-8">
