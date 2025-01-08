@@ -1,34 +1,63 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Network } from "vis-network";
-import { DataSet } from "vis-data";
+import {
+  ReactFlow,
+  Node,
+  Edge,
+  useNodesState,
+  useEdgesState,
+  addEdge,
+  Connection,
+} from '@xyflow/react';
 import { getGraphAPI } from "@/lib/api";
-import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Network as NetworkIcon } from "lucide-react";
+import CustomNode from "./graph/CustomNode";
+import { GraphControls } from "./graph/GraphControls";
+import '@xyflow/react/dist/style.css';
 
-interface Node {
-  id: string;
-  label: string;
-}
-
-interface Edge {
-  id: string;
-  from: string;
-  to: string;
-  label: string;
-  arrows: string;
-}
+const nodeTypes = {
+  custom: CustomNode,
+};
 
 export function GraphVisualization() {
   const [showGraph, setShowGraph] = useState(false);
-  const networkContainer = useRef<HTMLDivElement>(null);
+  const [nodes, setNodes, onNodesChange] = useNodesState([]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const { toast } = useToast();
 
-  const { data: graphData, isLoading, error } = useQuery({
+  const { data: graphData, isLoading } = useQuery({
     queryKey: ["graph"],
     queryFn: getGraphAPI,
     enabled: showGraph,
+    onSuccess: (data) => {
+      // Process nodes with custom styling
+      const processedNodes: Node[] = data.data.nodes.map((node: any) => ({
+        id: node.id,
+        type: 'custom',
+        data: { label: node.label },
+        position: { x: Math.random() * 500, y: Math.random() * 500 },
+      }));
+
+      // Process edges with proper formatting
+      const processedEdges: Edge[] = data.data.edges.map((edge: any, index: number) => ({
+        id: `e${index}`,
+        source: edge.source.replace(/"/g, ''),
+        target: edge.target.replace(/"/g, ''),
+        label: edge.label.replace(/"/g, ''),
+        animated: true,
+        style: { stroke: '#6366f1' },
+      }));
+
+      setNodes(processedNodes);
+      setEdges(processedEdges);
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to load graph data",
+        variant: "destructive",
+      });
+    },
   });
 
   const handleToggleGraph = () => {
@@ -41,111 +70,41 @@ export function GraphVisualization() {
     }
   };
 
-  useEffect(() => {
-    if (error) {
-      toast({
-        title: "Error",
-        description: "Failed to load graph data",
-        variant: "destructive",
-      });
-    }
-  }, [error, toast]);
+  const onConnect = useCallback(
+    (params: Connection) => setEdges((eds) => addEdge(params, eds)),
+    [setEdges]
+  );
 
-  useEffect(() => {
-    if (graphData && networkContainer.current) {
-      console.log("Graph Data:", graphData); // Debug log
-
-      // Process nodes
-      const nodes = new DataSet<Node>(
-        graphData.data.nodes.map((node: any) => ({
-          id: node.id,
-          label: node.label,
-        }))
-      );
-
-      // Process edges with proper typing and unique IDs
-      const edges = new DataSet<Edge>(
-        graphData.data.edges.map((edge: any, index: number) => ({
-          id: `e${index}`,
-          from: edge.source.replace(/"/g, ''),
-          to: edge.target.replace(/"/g, ''),
-          label: edge.label.replace(/"/g, ''),
-          arrows: "to",
-        }))
-      );
-
-      const options = {
-        nodes: {
-          shape: "circle",
-          size: 30,
-          font: { 
-            size: 14,
-            face: 'arial'
-          },
-          color: {
-            background: "#2563EB",
-            border: "#1d4ed8",
-            highlight: { background: "#3b82f6", border: "#2563EB" },
-          },
-        },
-        edges: {
-          arrows: "to",
-          font: { 
-            align: "middle",
-            size: 12
-          },
-          color: { color: "#94a3b8", highlight: "#64748b" },
-          smooth: {
-            enabled: true, // Added the required 'enabled' property
-            type: "cubicBezier",
-            forceDirection: "horizontal",
-            roundness: 0.4
-          }
-        },
-        physics: {
-          enabled: true,
-          barnesHut: {
-            gravitationalConstant: -2000,
-            centralGravity: 0.3,
-            springLength: 200,
-            springConstant: 0.04,
-          },
-        },
-        layout: {
-          improvedLayout: true,
-          hierarchical: false
-        }
-      };
-
-      const network = new Network(networkContainer.current, { nodes, edges }, options);
-
-      return () => {
-        network.destroy();
-      };
-    }
-  }, [graphData]);
+  if (!showGraph) {
+    return (
+      <div className="w-full max-w-4xl mx-auto mt-8">
+        <GraphControls onToggleGraph={handleToggleGraph} showGraph={showGraph} />
+      </div>
+    );
+  }
 
   return (
     <div className="w-full max-w-4xl mx-auto mt-8">
-      <Button
-        onClick={handleToggleGraph}
-        className="w-full bg-gradient-to-r from-primary to-purple-600 text-white shadow-lg hover:shadow-xl transition-all duration-200"
-      >
-        <NetworkIcon className="mr-2 h-4 w-4" />
-        {showGraph ? "Hide Network Graph" : "Show Network Graph"}
-      </Button>
-
-      {showGraph && (
-        <div className="mt-4 bg-white rounded-xl shadow-xl p-4 animate-fade-in">
-          {isLoading ? (
-            <div className="flex items-center justify-center h-[600px]">
-              <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary" />
-            </div>
-          ) : (
-            <div ref={networkContainer} className="w-full h-[600px] border border-gray-200 rounded-lg" />
-          )}
-        </div>
-      )}
+      <div className="h-[600px] bg-white rounded-xl shadow-xl p-4 animate-fade-in">
+        {isLoading ? (
+          <div className="flex items-center justify-center h-full">
+            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary" />
+          </div>
+        ) : (
+          <ReactFlow
+            nodes={nodes}
+            edges={edges}
+            onNodesChange={onNodesChange}
+            onEdgesChange={onEdgesChange}
+            onConnect={onConnect}
+            nodeTypes={nodeTypes}
+            fitView
+            className="bg-gray-50"
+          >
+            <GraphControls onToggleGraph={handleToggleGraph} showGraph={showGraph} />
+          </ReactFlow>
+        )}
+      </div>
     </div>
   );
 }
