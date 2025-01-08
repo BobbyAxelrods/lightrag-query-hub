@@ -58,8 +58,12 @@ export function GraphVisualization() {
   const layout = {
     name: 'cose',
     padding: 50,
-    animate: true,
-    nodeDimensionsIncludeLabels: true
+    animate: false,
+    nodeDimensionsIncludeLabels: true,
+    refresh: 20,
+    fit: true,
+    boundingBox: undefined,
+    randomize: true
   };
 
   const stylesheet = [
@@ -72,7 +76,10 @@ export function GraphVisualization() {
         'text-valign': 'center',
         'text-halign': 'center',
         'width': 50,
-        'height': 50
+        'height': 50,
+        'text-wrap': 'wrap',
+        'font-size': '12px',
+        'text-max-width': '80px'
       }
     },
     {
@@ -84,7 +91,9 @@ export function GraphVisualization() {
         'target-arrow-shape': 'triangle',
         'curve-style': 'bezier',
         'label': 'data(label)',
-        'text-rotation': 'autorotate'
+        'text-rotation': 'autorotate',
+        'font-size': '10px',
+        'text-margin-y': -10
       }
     }
   ];
@@ -112,7 +121,20 @@ export function GraphVisualization() {
                 layout={layout}
                 stylesheet={stylesheet}
                 style={{ width: '100%', height: '100%' }}
-                cy={(cy) => { cyRef.current = cy; }}
+                cy={(cy) => { 
+                  cyRef.current = cy;
+                  cy.on('tap', 'node', (evt) => {
+                    const node = evt.target;
+                    console.log('Tapped node:', node.id());
+                  });
+                  cy.on('tap', 'edge', (evt) => {
+                    const edge = evt.target;
+                    console.log('Tapped edge:', edge.id());
+                  });
+                }}
+                userZoomingEnabled={true}
+                userPanningEnabled={true}
+                boxSelectionEnabled={false}
               />
             </div>
           )}
