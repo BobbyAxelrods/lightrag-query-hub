@@ -81,7 +81,10 @@ export function GraphVisualization() {
         width: 2,
         shadow: true,
         smooth: {
-          type: 'continuous'
+          enabled: true,
+          type: 'continuous',
+          roundness: 0.5,
+          forceDirection: 'none'
         }
       },
       physics: {
