@@ -47,10 +47,12 @@ export function GraphVisualization() {
       networkInstanceRef.current = null;
     }
 
+    console.log("Graph Data:", graphData.data); // Debug log
+
     const nodes = graphData.data.nodes.map((node: any) => ({
       id: node.id,
-      label: node.label?.replace(/"/g, '') || node.entity_type?.replace(/"/g, ''),
-      title: node.properties?.replace(/"/g, '') || node.description?.replace(/"/g, ''),
+      label: node.entity_type?.replace(/"/g, '') || node.label?.replace(/"/g, '') || 'Unknown',
+      title: node.description?.replace(/"/g, '') || node.properties?.replace(/"/g, '') || '',
       color: {
         background: '#2563EB',
         border: '#1E40AF',
@@ -62,9 +64,9 @@ export function GraphVisualization() {
     }));
 
     const edges = graphData.data.edges.map((edge: any) => ({
-      from: edge.source.replace(/"/g, ''),
-      to: edge.target.replace(/"/g, ''),
-      label: (edge.label || edge.description || '')?.replace(/"/g, ''),
+      from: edge.source?.replace(/"/g, ''),
+      to: edge.target?.replace(/"/g, ''),
+      label: edge.description?.replace(/"/g, '') || edge.label?.replace(/"/g, '') || '',
       arrows: 'to',
       color: { color: '#94A3B8', highlight: '#64748B' },
       font: { size: 12, align: 'middle' },
@@ -90,12 +92,13 @@ export function GraphVisualization() {
       physics: {
         enabled: true,
         stabilization: {
-          iterations: 100
+          iterations: 100,
+          fit: true
         },
         barnesHut: {
-          gravitationalConstant: -10000,
-          springConstant: 0.002,
-          springLength: 250
+          gravitationalConstant: -2000,
+          springConstant: 0.04,
+          springLength: 200
         }
       },
       interaction: {
@@ -105,24 +108,41 @@ export function GraphVisualization() {
         dragView: true,
         navigationButtons: true,
         keyboard: true
-      }
+      },
+      height: '600px'
     };
 
-    networkInstanceRef.current = new VisNetwork(
-      networkRef.current,
-      data,
-      options
-    );
+    try {
+      networkInstanceRef.current = new VisNetwork(
+        networkRef.current,
+        data,
+        options
+      );
 
-    // Add event listeners
-    networkInstanceRef.current.on('click', function(params) {
-      if (params.nodes.length > 0) {
-        console.log('Clicked node:', params.nodes[0]);
-      }
-      if (params.edges.length > 0) {
-        console.log('Clicked edge:', params.edges[0]);
-      }
-    });
+      // Add event listeners
+      networkInstanceRef.current.on('click', function(params) {
+        if (params.nodes.length > 0) {
+          console.log('Clicked node:', params.nodes[0]);
+        }
+        if (params.edges.length > 0) {
+          console.log('Clicked edge:', params.edges[0]);
+        }
+      });
+
+      // Fit the network to view after initialization
+      networkInstanceRef.current.once('afterDrawing', function() {
+        if (networkInstanceRef.current) {
+          networkInstanceRef.current.fit();
+        }
+      });
+    } catch (err) {
+      console.error('Error initializing network:', err);
+      toast({
+        title: "Error",
+        description: "Failed to initialize network visualization",
+        variant: "destructive",
+      });
+    }
 
   }, [graphData, isLoading]);
 
