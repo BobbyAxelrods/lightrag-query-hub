@@ -4,7 +4,7 @@ import { getGraphAPI } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Network, Eye, EyeOff, Minimize2 } from "lucide-react";
-import { Network as VisNetwork, Data } from "vis-network";
+import { Network as VisNetwork, Data, DataSet } from "vis-network";
 import {
   Sheet,
   SheetContent,
@@ -12,6 +12,15 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+
+interface NetworkInstance extends VisNetwork {
+  body: {
+    data: {
+      nodes: DataSet<any>;
+      edges: DataSet<any>;
+    };
+  };
+}
 
 export function GraphVisualization() {
   const [showGraph, setShowGraph] = useState(false);
@@ -21,7 +30,7 @@ export function GraphVisualization() {
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const { toast } = useToast();
   const networkRef = useRef<HTMLDivElement>(null);
-  const networkInstanceRef = useRef<VisNetwork | null>(null);
+  const networkInstanceRef = useRef<NetworkInstance | null>(null);
 
   const { data: graphData, isLoading, error } = useQuery({
     queryKey: ["graph"],
@@ -182,7 +191,7 @@ export function GraphVisualization() {
         networkRef.current,
         data,
         options
-      );
+      ) as NetworkInstance;
 
       networkInstanceRef.current.on('click', function(params) {
         if (params.nodes.length > 0) {
