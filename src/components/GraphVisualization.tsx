@@ -64,22 +64,34 @@ export function GraphVisualization() {
     }));
 
     const edges = graphData.data.edges.map((edge: any) => ({
-      from: edge.source,  // Remove the replace(/"/g, '') as IDs should match exactly
-      to: edge.target,    // Remove the replace(/"/g, '') as IDs should match exactly
-      label: edge.description?.replace(/"/g, '') || edge.label?.replace(/"/g, '') || '',
+      from: edge.start_id || edge.source,  // Handle both start_id and source
+      to: edge.end_id || edge.target,      // Handle both end_id and target
+      label: edge.description?.replace(/"/g, '') || '',
       arrows: {
         to: {
           enabled: true,
-          type: 'arrow'
+          type: 'arrow',
+          scaleFactor: 1.5,  // Make arrows more visible
+          color: '#64748B'
         }
       },
-      color: { color: '#94A3B8', highlight: '#64748B' },
-      font: { size: 12, align: 'middle' },
+      color: { 
+        color: '#94A3B8', 
+        highlight: '#64748B',
+        opacity: 1.0
+      },
+      font: { 
+        size: 12, 
+        align: 'middle',
+        color: '#475569'
+      },
       length: 250,
+      width: 2,
       smooth: {
         enabled: true,
         type: 'continuous',
-        roundness: 0.5
+        roundness: 0.5,
+        forceDirection: 'none'
       }
     }));
 
