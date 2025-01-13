@@ -64,13 +64,23 @@ export function GraphVisualization() {
     }));
 
     const edges = graphData.data.edges.map((edge: any) => ({
-      from: edge.source?.replace(/"/g, ''),
-      to: edge.target?.replace(/"/g, ''),
+      from: edge.source,  // Remove the replace(/"/g, '') as IDs should match exactly
+      to: edge.target,    // Remove the replace(/"/g, '') as IDs should match exactly
       label: edge.description?.replace(/"/g, '') || edge.label?.replace(/"/g, '') || '',
-      arrows: 'to',
+      arrows: {
+        to: {
+          enabled: true,
+          type: 'arrow'
+        }
+      },
       color: { color: '#94A3B8', highlight: '#64748B' },
       font: { size: 12, align: 'middle' },
-      length: 250
+      length: 250,
+      smooth: {
+        enabled: true,
+        type: 'continuous',
+        roundness: 0.5
+      }
     }));
 
     const data: Data = { nodes, edges };
@@ -144,7 +154,7 @@ export function GraphVisualization() {
       });
     }
 
-  }, [graphData, isLoading]);
+  }, [graphData, isLoading, toast]);
 
   return (
     <div className="w-full max-w-4xl mx-auto mt-8">
