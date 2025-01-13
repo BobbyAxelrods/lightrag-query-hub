@@ -42,9 +42,10 @@ export function GraphVisualization() {
   const handleToggleLabels = () => {
     setShowLabels(!showLabels);
     if (networkInstanceRef.current) {
-      const nodes = networkInstanceRef.current.getNodes();
+      const nodes = networkInstanceRef.current.body.data.nodes.getIds();
       nodes.forEach((nodeId) => {
-        networkInstanceRef.current?.updateNode(nodeId, {
+        networkInstanceRef.current?.body.data.nodes.update({
+          id: nodeId,
           font: { size: showLabels ? 0 : 14, color: "#000000" },
         });
       });
@@ -55,15 +56,13 @@ export function GraphVisualization() {
     setHideIsolatedNodes(!hideIsolatedNodes);
     if (networkInstanceRef.current && graphData) {
       const network = networkInstanceRef.current;
-      const edges = network.getConnectedEdges;
       
       graphData.data.nodes.forEach((node: any) => {
         const connectedEdges = network.getConnectedEdges(node.id);
         if (connectedEdges.length === 0) {
-          network.setOptions({
-            nodes: {
-              hidden: !hideIsolatedNodes,
-            },
+          network.body.data.nodes.update({
+            id: node.id,
+            hidden: !hideIsolatedNodes,
           });
         }
       });
