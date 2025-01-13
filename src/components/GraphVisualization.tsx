@@ -49,8 +49,8 @@ export function GraphVisualization() {
 
     const nodes = graphData.data.nodes.map((node: any) => ({
       id: node.id,
-      label: node.label.replace(/"/g, ''),
-      title: node.properties.replace(/"/g, ''),
+      label: node.label?.replace(/"/g, '') || node.entity_type?.replace(/"/g, ''),
+      title: node.properties?.replace(/"/g, '') || node.description?.replace(/"/g, ''),
       color: {
         background: '#2563EB',
         border: '#1E40AF',
@@ -64,7 +64,7 @@ export function GraphVisualization() {
     const edges = graphData.data.edges.map((edge: any) => ({
       from: edge.source.replace(/"/g, ''),
       to: edge.target.replace(/"/g, ''),
-      label: edge.label.split('"')[1] || '',
+      label: (edge.label || edge.description || '')?.replace(/"/g, ''),
       arrows: 'to',
       color: { color: '#94A3B8', highlight: '#64748B' },
       font: { size: 12, align: 'middle' },
@@ -88,6 +88,7 @@ export function GraphVisualization() {
         }
       },
       physics: {
+        enabled: true,
         stabilization: {
           iterations: 100
         },
@@ -101,7 +102,9 @@ export function GraphVisualization() {
         hover: true,
         tooltipDelay: 200,
         zoomView: true,
-        dragView: true
+        dragView: true,
+        navigationButtons: true,
+        keyboard: true
       }
     };
 
