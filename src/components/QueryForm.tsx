@@ -1,9 +1,8 @@
+
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -13,11 +12,11 @@ import {
 } from "@/components/ui/select";
 import { queryAPI, QueryResponse } from "@/lib/api";
 import { Loader2 } from "lucide-react";
+import ReactMarkdown from 'react-markdown';
 
 export function QueryForm() {
   const [query, setQuery] = useState("");
-  const [mode, setMode] = useState<"hybrid" | "semantic" | "keyword">("hybrid");
-  const [onlyContext, setOnlyContext] = useState(false);
+  const [mode, setMode] = useState<"local" | "global" | "hybrid">("hybrid");
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<QueryResponse | null>(null);
   const { toast } = useToast();
@@ -38,7 +37,6 @@ export function QueryForm() {
       const response = await queryAPI({
         query,
         mode,
-        only_need_context: onlyContext,
       });
       setResult(response);
       toast({
@@ -61,7 +59,9 @@ export function QueryForm() {
     <div className="w-full max-w-2xl mx-auto p-6 space-y-8 bg-white rounded-lg shadow-lg animate-fade-in">
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="space-y-2">
-          <Label htmlFor="query">Your Query</Label>
+          <label htmlFor="query" className="block text-sm font-medium text-gray-700">
+            Your Query
+          </label>
           <Input
             id="query"
             placeholder="Enter your question..."
@@ -71,29 +71,18 @@ export function QueryForm() {
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label>Query Mode</Label>
-            <Select value={mode} onValueChange={(value: any) => setMode(value)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select mode" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="hybrid">Hybrid</SelectItem>
-                <SelectItem value="semantic">Semantic</SelectItem>
-                <SelectItem value="keyword">Keyword</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="flex items-center space-x-2 pt-8">
-            <Checkbox
-              id="context"
-              checked={onlyContext}
-              onCheckedChange={(checked: boolean) => setOnlyContext(checked)}
-            />
-            <Label htmlFor="context">Only Need Context</Label>
-          </div>
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-gray-700">Query Mode</label>
+          <Select value={mode} onValueChange={(value: "local" | "global" | "hybrid") => setMode(value)}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select mode" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="local">Local</SelectItem>
+              <SelectItem value="global">Global</SelectItem>
+              <SelectItem value="hybrid">Hybrid</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         <Button type="submit" className="w-full" disabled={isLoading}>
@@ -111,9 +100,11 @@ export function QueryForm() {
       {result && (
         <div className="mt-8 p-4 bg-gray-50 rounded-lg">
           <h3 className="font-semibold mb-2">Response:</h3>
-          <pre className="text-sm text-gray-700 whitespace-pre-wrap overflow-auto">
-            {JSON.stringify(result.data, null, 2)}
-          </pre>
+          <div className="prose max-w-none">
+            <ReactMarkdown>
+              {typeof result.data === 'string' ? result.data : JSON.stringify(result.data, null, 2)}
+            </ReactMarkdown>
+          </div>
         </div>
       )}
     </div>

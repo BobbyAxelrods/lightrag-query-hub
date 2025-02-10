@@ -1,3 +1,4 @@
+
 import axios from "axios";
 
 const api = axios.create({
@@ -8,7 +9,6 @@ const api = axios.create({
   },
 });
 
-// Add interceptor to log errors
 api.interceptors.response.use(
   (response) => response,
   (error) => {
@@ -19,8 +19,7 @@ api.interceptors.response.use(
 
 export interface QueryRequest {
   query: string;
-  mode: "hybrid" | "semantic" | "keyword";
-  only_need_context: boolean;
+  mode: "local" | "global" | "hybrid";
 }
 
 export interface QueryResponse {
@@ -82,11 +81,11 @@ export interface GraphResponse {
 }
 
 export const getGraphAPI = async (): Promise<GraphResponse> => {
-  const response = await api.get("/graph");
+  const response = await api.get("/neo4j/graph");
   return response.data;
 };
 
 export const getDocumentsAPI = async (): Promise<QueryResponse> => {
-  const response = await api.get("/documents");
+  const response = await api.get("/documents.json");
   return response.data;
 };
