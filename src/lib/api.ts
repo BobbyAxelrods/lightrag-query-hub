@@ -4,10 +4,7 @@ import neo4j from 'neo4j-driver';
 // Neo4j connection configuration
 const driver = neo4j.driver(
   'bolt://localhost:7687',
-  neo4j.auth.basic('neo4j', 'prudential'),  // Update with your credentials
-  {
-    database: 'prudential'
-  }
+  neo4j.auth.basic('neo4j', 'prudential')
 );
 
 const api = axios.create({
