@@ -1,3 +1,4 @@
+
 import axios from "axios";
 import neo4j from 'neo4j-driver';
 
@@ -91,14 +92,21 @@ export interface GraphResponse {
 export const getGraphAPI = async (): Promise<GraphResponse> => {
   const session = driver.session();
   try {
-    // Replace this query with your specific Neo4j query
     const result = await session.run(
       'MATCH (n)-[r]->(m) RETURN n, r, m'
     );
 
-    // Transform Neo4j result into the expected GraphData format
-    const nodes = new Set();
-    const edges = [];
+    // Create a Set with the correct type
+    const nodes = new Set<{
+      id: string;
+      label: string;
+      properties: Record<string, any>;
+    }>();
+    const edges: Array<{
+      source: string;
+      target: string;
+      label: string;
+    }> = [];
     
     result.records.forEach(record => {
       // Add start node
