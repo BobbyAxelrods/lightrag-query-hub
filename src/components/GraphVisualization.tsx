@@ -32,9 +32,10 @@ export function GraphVisualization() {
   const handleToggleLabels = () => {
     setShowLabels(!showLabels);
     if (networkInstance) {
-      const nodes = networkInstance.getNodes();
-      nodes.forEach((nodeId) => {
-        networkInstance.updateNode(nodeId, {
+      const nodes = networkInstance.body.data.nodes.getDataSet();
+      nodes.forEach((node) => {
+        nodes.update({
+          id: node.id,
           font: { size: showLabels ? 0 : 14 }
         });
       });
