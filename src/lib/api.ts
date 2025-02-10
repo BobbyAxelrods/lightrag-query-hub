@@ -1,14 +1,7 @@
 import axios from "axios";
-import neo4j from 'neo4j-driver';
-
-// Neo4j connection configuration
-const driver = neo4j.driver(
-  'bolt://localhost:7687',
-  neo4j.auth.basic('neo4j', 'prudential')
-);
 
 const api = axios.create({
-  baseURL: "http://localhost:8000",
+  baseURL: "http://localhost:8001",
   headers: {
     "Content-Type": "application/json",
     "Accept": "application/json",
@@ -26,7 +19,7 @@ api.interceptors.response.use(
 
 export interface QueryRequest {
   query: string;
-  mode: "global" | "local" | "hybrid";
+  mode: "hybrid" | "semantic" | "keyword";
   only_need_context: boolean;
 }
 
@@ -41,10 +34,11 @@ export interface HealthResponse {
 }
 
 export interface Document {
-  filename: string;
-  size: number;
-  lastModified: string;
-  content: any;
+  id: string;
+  status: string;
+  created_at: string;
+  updated_at: string;
+  content: string;
 }
 
 export const queryAPI = async (params: QueryRequest): Promise<QueryResponse> => {
@@ -88,97 +82,11 @@ export interface GraphResponse {
 }
 
 export const getGraphAPI = async (): Promise<GraphResponse> => {
-  const session = driver.session({
-    database: 'prudential'
-  });
-  try {
-    // Simple query to get all nodes and relationships
-    const result = await session.run(
-      'MATCH (n)-[r]->(m) RETURN n, r, m'
-    );
-
-    const nodes = new Set<{
-      id: string;
-      label: string;
-      properties: Record<string, any>;
-    }>();
-    const edges: Array<{
-      source: string;
-      target: string;
-      label: string;
-    }> = [];
-    
-    result.records.forEach(record => {
-      // Add start node
-      const startNode = record.get('n');
-      nodes.add({
-        id: startNode.identity.toString(),
-        label: startNode.labels[0] || 'Node',
-        properties: startNode.properties
-      });
-
-      // Add end node
-      const endNode = record.get('m');
-      nodes.add({
-        id: endNode.identity.toString(),
-        label: endNode.labels[0] || 'Node',
-        properties: endNode.properties
-      });
-
-      // Add relationship
-      const rel = record.get('r');
-      edges.push({
-        source: rel.startNodeIdentity.toString(),
-        target: rel.endNodeIdentity.toString(),
-        label: rel.type
-      });
-    });
-
-    // Also get isolated nodes (nodes without relationships)
-    const isolatedResult = await session.run(
-      'MATCH (n) WHERE NOT (n)-[]-() RETURN n'
-    );
-
-    isolatedResult.records.forEach(record => {
-      const node = record.get('n');
-      nodes.add({
-        id: node.identity.toString(),
-        label: node.labels[0] || 'Node',
-        properties: node.properties
-      });
-    });
-
-    return {
-      status: "success",
-      data: {
-        nodes: Array.from(nodes),
-        edges: edges
-      },
-      message: null
-    };
-  } catch (error) {
-    console.error("Neo4j Query Error:", error);
-    throw error;
-  } finally {
-    await session.close();
-  }
+  const response = await api.get("/graph");
+  return response.data;
 };
 
 export const getDocumentsAPI = async (): Promise<QueryResponse> => {
-  try {
-    const response = await api.get("/documents/working-dir");
-    return {
-      status: "success",
-      data: response.data,
-      message: null
-    };
-  } catch (error) {
-    console.error("Error fetching documents:", error);
-    throw error;
-  }
+  const response = await api.get("/documents");
+  return response.data;
 };
-
-// Clean up Neo4j connection when the application closes
-window.addEventListener('beforeunload', () => {
-  driver.close();
-});
