@@ -3,7 +3,7 @@ import { useState, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getGraphAPI } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
-import { Network as VisNetwork } from "vis-network";
+import { Network as VisNetwork, DataSet } from "vis-network";
 import { NetworkControls } from "./NetworkControls";
 import { NetworkView } from "./NetworkView";
 
@@ -32,12 +32,15 @@ export function GraphVisualization() {
   const handleToggleLabels = () => {
     setShowLabels(!showLabels);
     if (networkInstance) {
-      const nodes = networkInstance.body.data.nodes;
-      const allNodes = nodes.get();
-      allNodes.forEach((node) => {
-        nodes.update({
-          id: node.id,
-          font: { size: showLabels ? 0 : 14 }
+      const container = networkInstance.getContainer();
+      const network = networkInstance;
+      // Access the nodes DataSet through the container's dataset
+      const nodesDataset = network.getNodes();
+      nodesDataset.forEach((nodeId) => {
+        network.setOptions({
+          nodes: {
+            font: { size: showLabels ? 0 : 14 }
+          }
         });
       });
     }
