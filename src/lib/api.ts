@@ -1,4 +1,3 @@
-
 import axios from "axios";
 import neo4j from 'neo4j-driver';
 
@@ -9,7 +8,7 @@ const driver = neo4j.driver(
 );
 
 const api = axios.create({
-  baseURL: "http://localhost:8001",
+  baseURL: "http://localhost:8080",  // Updated to match your backend port
   headers: {
     "Content-Type": "application/json",
     "Accept": "application/json",
