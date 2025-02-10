@@ -59,6 +59,16 @@ export function QueryForm() {
     }
   };
 
+  const handleModeChange = (value: string) => {
+    if (value === "global" || value === "local" || value === "hybrid") {
+      setMode(value);
+    }
+  };
+
+  const handleContextChange = (checked: boolean) => {
+    setOnlyContext(checked);
+  };
+
   return (
     <div className="w-full max-w-2xl mx-auto p-6 space-y-8 bg-white rounded-lg shadow-lg animate-fade-in">
       <form onSubmit={handleSubmit} className="space-y-6">
@@ -76,7 +86,7 @@ export function QueryForm() {
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label>Query Mode</Label>
-            <Select value={mode} onValueChange={(value: any) => setMode(value)}>
+            <Select value={mode} onValueChange={handleModeChange}>
               <SelectTrigger>
                 <SelectValue placeholder="Select mode" />
               </SelectTrigger>
@@ -92,7 +102,7 @@ export function QueryForm() {
             <Checkbox
               id="context"
               checked={onlyContext}
-              onCheckedChange={(checked: boolean) => setOnlyContext(checked)}
+              onCheckedChange={handleContextChange}
             />
             <Label htmlFor="context">Only Need Context</Label>
           </div>
