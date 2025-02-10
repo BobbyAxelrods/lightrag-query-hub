@@ -1,6 +1,8 @@
+
 import axios from "axios";
 
 const api = axios.create({
+  // Use a properly formatted URL without trailing colon
   baseURL: "http://localhost:8001",
   headers: {
     "Content-Type": "application/json",
