@@ -3,12 +3,15 @@ import neo4j from 'neo4j-driver';
 
 // Neo4j connection configuration
 const driver = neo4j.driver(
-  'bolt://localhost:7687',  // Replace with your Neo4j server URL
-  neo4j.auth.basic('neo4j', 'your-password')  // Replace with your credentials
+  'bolt://localhost:7687',
+  neo4j.auth.basic('neo4j', 'prudential'),  // Update with your credentials
+  {
+    database: 'prudential'
+  }
 );
 
 const api = axios.create({
-  baseURL: "http://localhost:8080",  // Updated to match your backend port
+  baseURL: "http://localhost:8080",
   headers: {
     "Content-Type": "application/json",
     "Accept": "application/json",
@@ -88,7 +91,9 @@ export interface GraphResponse {
 }
 
 export const getGraphAPI = async (): Promise<GraphResponse> => {
-  const session = driver.session();
+  const session = driver.session({
+    database: 'prudential'
+  });
   try {
     // Simple query to get all nodes and relationships
     const result = await session.run(
