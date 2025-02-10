@@ -1,9 +1,11 @@
+
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import ReactMarkdown from "react-markdown";
 import {
   Select,
   SelectContent,
@@ -111,9 +113,13 @@ export function QueryForm() {
       {result && (
         <div className="mt-8 p-4 bg-gray-50 rounded-lg">
           <h3 className="font-semibold mb-2">Response:</h3>
-          <pre className="text-sm text-gray-700 whitespace-pre-wrap overflow-auto">
-            {JSON.stringify(result.data, null, 2)}
-          </pre>
+          <div className="prose prose-sm max-w-none">
+            <ReactMarkdown>
+              {typeof result.data === "string" 
+                ? result.data 
+                : JSON.stringify(result.data, null, 2)}
+            </ReactMarkdown>
+          </div>
         </div>
       )}
     </div>
