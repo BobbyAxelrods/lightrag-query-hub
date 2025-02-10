@@ -1,3 +1,4 @@
+
 import axios from "axios";
 import neo4j from 'neo4j-driver';
 
@@ -90,11 +91,11 @@ export interface GraphResponse {
 export const getGraphAPI = async (): Promise<GraphResponse> => {
   const session = driver.session();
   try {
+    // Simple query to get all nodes and relationships
     const result = await session.run(
       'MATCH (n)-[r]->(m) RETURN n, r, m'
     );
 
-    // Create a Set with the correct type
     const nodes = new Set<{
       id: string;
       label: string;
@@ -129,6 +130,20 @@ export const getGraphAPI = async (): Promise<GraphResponse> => {
         source: rel.startNodeIdentity.toString(),
         target: rel.endNodeIdentity.toString(),
         label: rel.type
+      });
+    });
+
+    // Also get isolated nodes (nodes without relationships)
+    const isolatedResult = await session.run(
+      'MATCH (n) WHERE NOT (n)-[]-() RETURN n'
+    );
+
+    isolatedResult.records.forEach(record => {
+      const node = record.get('n');
+      nodes.add({
+        id: node.identity.toString(),
+        label: node.labels[0] || 'Node',
+        properties: node.properties
       });
     });
 
