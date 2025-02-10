@@ -18,7 +18,7 @@ import { Loader2 } from "lucide-react";
 
 export function QueryForm() {
   const [query, setQuery] = useState("");
-  const [mode, setMode] = useState<"hybrid" | "semantic" | "keyword">("hybrid");
+  const [mode, setMode] = useState<"global" | "local" | "hybrid">("hybrid");
   const [onlyContext, setOnlyContext] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<QueryResponse | null>(null);
@@ -81,9 +81,9 @@ export function QueryForm() {
                 <SelectValue placeholder="Select mode" />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="global">Global</SelectItem>
+                <SelectItem value="local">Local</SelectItem>
                 <SelectItem value="hybrid">Hybrid</SelectItem>
-                <SelectItem value="semantic">Semantic</SelectItem>
-                <SelectItem value="keyword">Keyword</SelectItem>
               </SelectContent>
             </Select>
           </div>

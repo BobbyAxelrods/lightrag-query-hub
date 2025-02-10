@@ -1,3 +1,4 @@
+
 import axios from "axios";
 import neo4j from 'neo4j-driver';
 
@@ -26,7 +27,7 @@ api.interceptors.response.use(
 
 export interface QueryRequest {
   query: string;
-  mode: "hybrid" | "semantic" | "keyword";
+  mode: "global" | "local" | "hybrid";
   only_need_context: boolean;
 }
 
