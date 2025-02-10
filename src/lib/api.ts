@@ -1,4 +1,3 @@
-
 import axios from "axios";
 import neo4j from 'neo4j-driver';
 
@@ -42,11 +41,10 @@ export interface HealthResponse {
 }
 
 export interface Document {
-  id: string;
-  status: string;
-  created_at: string;
-  updated_at: string;
-  content: string;
+  filename: string;
+  size: number;
+  lastModified: string;
+  content: any;
 }
 
 export const queryAPI = async (params: QueryRequest): Promise<QueryResponse> => {
@@ -151,8 +149,17 @@ export const getGraphAPI = async (): Promise<GraphResponse> => {
 };
 
 export const getDocumentsAPI = async (): Promise<QueryResponse> => {
-  const response = await api.get("/documents");
-  return response.data;
+  try {
+    const response = await api.get("/documents/working-dir");
+    return {
+      status: "success",
+      data: response.data,
+      message: null
+    };
+  } catch (error) {
+    console.error("Error fetching documents:", error);
+    throw error;
+  }
 };
 
 // Clean up Neo4j connection when the application closes
