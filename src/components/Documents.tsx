@@ -1,3 +1,4 @@
+
 import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getDocumentsAPI } from "@/lib/api";
@@ -10,6 +11,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
+import { Badge } from "@/components/ui/badge";
 
 export function Documents() {
   const { toast } = useToast();
@@ -41,8 +43,11 @@ export function Documents() {
     return null;
   }
 
-  // Get all column names from the first document
-  const columns = documents?.data?.[0] ? Object.keys(documents.data[0]) : [];
+  // Transform the data from object to array format
+  const documentsArray = Object.entries(documents?.data || {}).map(([id, doc]: [string, any]) => ({
+    id,
+    ...doc,
+  }));
 
   return (
     <div className="w-full max-w-4xl mx-auto p-6 space-y-6 bg-white rounded-xl shadow-lg">
@@ -51,21 +56,31 @@ export function Documents() {
         <Table>
           <TableHeader>
             <TableRow>
-              {columns.map((column) => (
-                <TableHead key={column}>{column}</TableHead>
-              ))}
+              <TableHead>Document ID</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Created At</TableHead>
+              <TableHead>Updated At</TableHead>
+              <TableHead>Content Summary</TableHead>
+              <TableHead>Chunks Count</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {documents?.data?.map((doc: any, index: number) => (
-              <TableRow key={index}>
-                {columns.map((column) => (
-                  <TableCell key={`${index}-${column}`}>
-                    {typeof doc[column] === 'object' 
-                      ? JSON.stringify(doc[column])
-                      : doc[column]}
-                  </TableCell>
-                ))}
+            {documentsArray.map((doc) => (
+              <TableRow key={doc.id}>
+                <TableCell className="font-medium">{doc.id}</TableCell>
+                <TableCell>
+                  <Badge 
+                    variant={doc.status === "processed" ? "success" : "destructive"}
+                  >
+                    {doc.status}
+                  </Badge>
+                </TableCell>
+                <TableCell>{new Date(doc.created_at).toLocaleString()}</TableCell>
+                <TableCell>{new Date(doc.updated_at).toLocaleString()}</TableCell>
+                <TableCell className="max-w-md truncate">
+                  {doc.content_summary}
+                </TableCell>
+                <TableCell>{doc.chunks_count}</TableCell>
               </TableRow>
             ))}
           </TableBody>
