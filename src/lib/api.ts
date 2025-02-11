@@ -2,7 +2,7 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "http://localhost:8001",
+  baseURL: "http://localhost:8000",
   headers: {
     "Content-Type": "application/json",
     "Accept": "application/json",
@@ -53,6 +53,11 @@ export const uploadFileAPI = async (file: File, uploadType: "initial" | "increme
   const response = await api.post(endpoint, formData, {
     headers: { "Content-Type": "multipart/form-data" },
   });
+  return response.data;
+};
+
+export const deleteDocumentAPI = async (docId: string): Promise<QueryResponse> => {
+  const response = await api.post("/delete_by_doc", { doc_id: docId });
   return response.data;
 };
 
