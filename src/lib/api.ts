@@ -91,6 +91,6 @@ export const getGraphAPI = async (): Promise<GraphResponse> => {
 };
 
 export const getDocumentsAPI = async (): Promise<QueryResponse> => {
-  const response = await api.get("/documents.json");
+  const response = await api.post("/get-document", {});
   return response.data;
 };
