@@ -40,12 +40,17 @@ export interface Document {
   content: string;
 }
 
+export interface UploadResponse {
+  status: string;
+  message: string;
+}
+
 export const queryAPI = async (params: QueryRequest): Promise<QueryResponse> => {
   const response = await api.post("/query", params);
   return response.data;
 };
 
-export const uploadFileAPI = async (file: File, uploadType: "initial" | "incremental") => {
+export const uploadFileAPI = async (file: File, uploadType: "initial" | "incremental"): Promise<UploadResponse> => {
   const formData = new FormData();
   formData.append("file", file);
 

@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -35,14 +36,14 @@ export function FileUpload() {
       }, 500);
 
       // Pass the upload type to the API
-      await uploadFileAPI(file, uploadType);
+      const response = await uploadFileAPI(file, uploadType);
       
       clearInterval(progressInterval);
       setProgress(100);
       
       toast({
         title: "Success",
-        description: "File uploaded successfully",
+        description: response.message,
       });
     } catch (error) {
       toast({
