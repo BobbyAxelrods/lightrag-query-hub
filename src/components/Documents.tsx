@@ -70,7 +70,7 @@ export function Documents() {
                 <TableCell className="font-medium">{doc.id}</TableCell>
                 <TableCell>
                   <Badge 
-                    variant={doc.status === "processed" ? "success" : "destructive"}
+                    variant={doc.status === "processed" ? "secondary" : "destructive"}
                   >
                     {doc.status}
                   </Badge>
