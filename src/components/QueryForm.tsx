@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,7 +19,15 @@ export function QueryForm() {
   const [mode, setMode] = useState<"local" | "global" | "hybrid">("hybrid");
   const [isLoading, setIsLoading] = useState(false);
   const [streamingResponse, setStreamingResponse] = useState<string>("");
+  const responseRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+
+  // Auto-scroll to bottom when new content arrives
+  useEffect(() => {
+    if (responseRef.current) {
+      responseRef.current.scrollTop = responseRef.current.scrollHeight;
+    }
+  }, [streamingResponse]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,7 +48,15 @@ export function QueryForm() {
         query,
         mode,
       }, (chunk: string) => {
-        setStreamingResponse(prev => prev + chunk);
+        // Clean up the chunk and append it to the existing response
+        const cleanChunk = chunk.replace(/\n+/g, '\n').trim();
+        if (cleanChunk) {
+          setStreamingResponse(prev => {
+            // Ensure proper spacing between chunks
+            const separator = prev.endsWith('.') || prev.endsWith('?') || prev.endsWith('!') ? ' ' : '';
+            return prev + separator + cleanChunk;
+          });
+        }
       });
 
       toast({
@@ -102,7 +118,10 @@ export function QueryForm() {
       </form>
 
       {streamingResponse && (
-        <div className="mt-8 p-4 bg-gray-50 rounded-lg">
+        <div 
+          ref={responseRef}
+          className="mt-8 p-4 bg-gray-50 rounded-lg max-h-[500px] overflow-y-auto scroll-smooth"
+        >
           <h3 className="font-semibold mb-2">Response:</h3>
           <div className="prose max-w-none">
             <ReactMarkdown>
