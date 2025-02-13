@@ -35,7 +35,7 @@ export function QueryForm() {
     formattedText = formattedText.replace(/([a-z])([A-Z])/g, '$1 $2');
     
     // Fix spacing around bold text
-    formattedText = formattedText.replace(/\*\*/g, ' ** ').replace(/\s+/g, ' ');
+    formattedText = formattedText.replace(/\*\*/g, ' **').replace(/\*\* /g, '** ');
     
     // Add proper spacing after punctuation
     formattedText = formattedText.replace(/([.!?])([A-Z])/g, '$1 $2');
@@ -55,14 +55,40 @@ export function QueryForm() {
     return formattedText;
   };
 
+  // Test function to simulate streaming response
+  const testFormatting = () => {
+    const sampleText = `## Product Overview
+The **Premium Package** is our flagship offering designed for enterprise customers. This comprehensive solution provides multiple benefits and features.
+
+### Key Features
+1. **Real-time Analytics** with advanced reporting
+2. **24/7 Support** from our dedicated team
+- Priority response time
+- Dedicated account manager
+- Custom solutions
+
+### Pricing Tiers
+Our pricing structure is designed to accommodate different needs:
+- **Basic Tier**: Includes essential features
+- **Professional Tier**: Enhanced capabilities
+- **Enterprise Tier**: Full suite of features
+
+### Integration Process
+The integration process follows these steps:
+1. Initial setup and configuration
+2. Data migration and validation
+3. User training and documentation
+
+For more information, contact our **Sales Team** or visit our website.`;
+
+    setStreamingResponse(formatMarkdownText(sampleText));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!query.trim()) {
-      toast({
-        title: "Error",
-        description: "Please enter a query",
-        variant: "destructive",
-      });
+      // For testing purposes, trigger the test formatting
+      testFormatting();
       return;
     }
 
@@ -120,7 +146,7 @@ export function QueryForm() {
           </label>
           <Input
             id="query"
-            placeholder="Enter your question..."
+            placeholder="Enter your question... (or leave empty to see test formatting)"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             className="w-full"
@@ -148,7 +174,7 @@ export function QueryForm() {
               Processing...
             </>
           ) : (
-            "Submit Query"
+            query.trim() ? "Submit Query" : "Show Test Formatting"
           )}
         </Button>
       </form>
