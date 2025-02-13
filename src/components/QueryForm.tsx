@@ -56,32 +56,21 @@ export function QueryForm() {
 
   // Test function to simulate streaming response
   const testFormatting = () => {
-    const sampleText = `## Prime Cash Campaign Overview
+    const sampleText = `3. **Eligibility and Requirements**:
+- To be eligible for the cash reward, customers must ensure their **Bank Account Details are accurate** in the PAMB's system. This must be done on or before June 15, 2024.
+- Policies must remain in force without partial withdrawals or negative endorsements until the reward is issued, which is expected to happen by February 28, 2025.
 
-The **Premium Package** rewards are structured as follows:
+### Cash Reward Structure
 
-### Key Benefits
-1. **Instant Rewards** up to RM500
-2. **Flexible Options** for all customers
-- Priority processing
-- Dedicated support
-- Custom benefits
+The campaign's cash rewards are structured as follows:
 
-### Eligibility Tiers
-We offer multiple tiers to suit your needs:
-- **Basic Tier**: RM125 reward
-- **Advanced Tier**: RM250 reward
-- **Premium Tier**: RM500 reward
+- **PRUMan/PRULady**: 
+  - RM125 upon meeting the specified minimum sum assured and recurring payment requirements.
+- **PRUWith You**:
+  - **Tier1**: RM250 for fulfilling minimum annual premium and rider conditions.
+  - **Tier2**: RM500 for meeting all Tier1 criteria alongside the sustainability requirements.`;
 
-### How to Apply
-Follow these simple steps:
-1. Submit your application
-2. Choose your preferred plan
-3. Complete documentation
-
-For assistance, contact our **Customer Service** team.`;
-
-    // Set the formatted text directly without additional processing
+    // Set the formatted text directly
     setStreamingResponse(sampleText);
   };
 
@@ -186,7 +175,7 @@ For assistance, contact our **Customer Service** team.`;
           className="mt-8 p-8 bg-gray-50 rounded-lg max-h-[800px] overflow-y-auto scroll-smooth border border-gray-200"
         >
           <h3 className="font-semibold text-xl mb-6 text-gray-800">Response:</h3>
-          <div className="prose prose-lg max-w-none prose-headings:font-semibold prose-headings:mt-8 prose-headings:mb-4 prose-p:text-gray-600 prose-p:leading-relaxed prose-p:mb-4 prose-li:text-gray-600 prose-li:my-2 prose-strong:text-gray-800 prose-strong:font-semibold">
+          <div className="prose prose-lg max-w-none prose-headings:font-semibold prose-headings:mt-8 prose-headings:mb-4 prose-p:text-gray-600 prose-p:leading-relaxed prose-p:mb-4 prose-li:text-gray-600 prose-li:my-2 prose-strong:text-gray-800 prose-strong:font-semibold prose-ul:space-y-2 prose-ul:list-disc prose-ul:pl-6">
             <ReactMarkdown>
               {streamingResponse}
             </ReactMarkdown>
