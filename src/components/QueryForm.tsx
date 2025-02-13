@@ -28,6 +28,33 @@ export function QueryForm() {
     }
   }, [streamingResponse]);
 
+  const formatMarkdownText = (text: string): string => {
+    let formattedText = text;
+
+    // Add spaces between words that are stuck together
+    formattedText = formattedText.replace(/([a-z])([A-Z])/g, '$1 $2');
+    
+    // Fix spacing around bold text
+    formattedText = formattedText.replace(/\*\*/g, ' ** ').replace(/\s+/g, ' ');
+    
+    // Add proper spacing after punctuation
+    formattedText = formattedText.replace(/([.!?])([A-Z])/g, '$1 $2');
+    
+    // Add proper spacing for lists
+    formattedText = formattedText.replace(/([.!?])-/g, '$1\n-');
+    
+    // Add line breaks before headers
+    formattedText = formattedText.replace(/([^\n])#{1,6}\s/g, '$1\n\n#');
+    
+    // Add line breaks after headers
+    formattedText = formattedText.replace(/(#[^\n]+)/g, '$1\n');
+    
+    // Add proper spacing for numbered lists
+    formattedText = formattedText.replace(/(\d+)\./g, '\n$1.');
+    
+    return formattedText;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!query.trim()) {
@@ -47,33 +74,23 @@ export function QueryForm() {
         query,
         mode,
       }, (chunk: string) => {
-        const cleanChunk = chunk.replace(/\n+/g, '\n').trim();
-        if (cleanChunk) {
+        if (chunk.trim()) {
           setStreamingResponse(prev => {
-            let formattedChunk = cleanChunk;
+            const formattedChunk = formatMarkdownText(chunk);
             
-            // Handle markdown headers
-            if (formattedChunk.startsWith('#')) {
-              formattedChunk = '\n\n' + formattedChunk + '\n';
+            // Determine if we need a space or newline between chunks
+            let separator = '';
+            if (prev.endsWith('\n')) {
+              separator = '';
+            } else if (formattedChunk.startsWith('#')) {
+              separator = '\n\n';
+            } else if (formattedChunk.startsWith('-')) {
+              separator = '\n';
+            } else if (!prev.endsWith(' ')) {
+              separator = ' ';
             }
-            
-            // Handle markdown lists
-            if (formattedChunk.startsWith('-') || formattedChunk.startsWith('*')) {
-              formattedChunk = '\n' + formattedChunk;
-            }
-            
-            // Handle bold text
-            if (formattedChunk.includes('**')) {
-              formattedChunk = ' ' + formattedChunk + ' ';
-            }
-            
-            // Add proper spacing between paragraphs
-            if (formattedChunk.includes('.') || formattedChunk.includes('?') || formattedChunk.includes('!')) {
-              formattedChunk = formattedChunk + '\n';
-            }
-            
-            // Ensure proper spacing between chunks
-            return prev + (prev.endsWith('\n') ? '' : ' ') + formattedChunk;
+
+            return prev + separator + formattedChunk;
           });
         }
       });
@@ -95,7 +112,7 @@ export function QueryForm() {
   };
 
   return (
-    <div className="w-full max-w-3xl mx-auto p-6 space-y-8 bg-white rounded-lg shadow-lg animate-fade-in">
+    <div className="w-full max-w-4xl mx-auto p-6 space-y-8 bg-white rounded-lg shadow-lg animate-fade-in">
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="space-y-2">
           <label htmlFor="query" className="block text-sm font-medium text-gray-700">
@@ -139,10 +156,10 @@ export function QueryForm() {
       {streamingResponse && (
         <div 
           ref={responseRef}
-          className="mt-8 p-6 bg-gray-50 rounded-lg max-h-[600px] overflow-y-auto scroll-smooth border border-gray-200"
+          className="mt-8 p-8 bg-gray-50 rounded-lg max-h-[800px] overflow-y-auto scroll-smooth border border-gray-200"
         >
-          <h3 className="font-semibold text-lg mb-4 text-gray-800">Response:</h3>
-          <div className="prose prose-sm md:prose-base lg:prose-lg max-w-none prose-headings:font-semibold prose-headings:mt-6 prose-headings:mb-4 prose-p:text-gray-600 prose-p:leading-relaxed prose-li:text-gray-600 prose-li:my-1 prose-strong:text-gray-800 prose-strong:font-semibold prose-pre:bg-gray-100 prose-pre:p-4 prose-pre:rounded-lg">
+          <h3 className="font-semibold text-xl mb-6 text-gray-800">Response:</h3>
+          <div className="prose prose-lg max-w-none prose-headings:font-semibold prose-headings:mt-8 prose-headings:mb-4 prose-p:text-gray-600 prose-p:leading-relaxed prose-p:mb-4 prose-li:text-gray-600 prose-li:my-2 prose-strong:text-gray-800 prose-strong:font-semibold prose-pre:bg-gray-100 prose-pre:p-4 prose-pre:rounded-lg">
             <ReactMarkdown>
               {streamingResponse}
             </ReactMarkdown>
