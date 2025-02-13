@@ -1,3 +1,4 @@
+
 import { useState, useRef, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -27,58 +28,14 @@ export function QueryForm() {
     }
   }, [streamingResponse]);
 
-  const formatMarkdownText = (text: string): string => {
-    let formattedText = text;
-
-    // Add spaces between words that are stuck together
-    formattedText = formattedText.replace(/([a-z])([A-Z])/g, '$1 $2');
-    
-    // Fix spacing around bold text
-    formattedText = formattedText.replace(/\*\*/g, ' **').replace(/\*\* /g, '** ');
-    
-    // Add proper spacing after punctuation
-    formattedText = formattedText.replace(/([.!?])([A-Z])/g, '$1 $2');
-    
-    // Add proper spacing for lists
-    formattedText = formattedText.replace(/([.!?])-/g, '$1\n-');
-    
-    // Add line breaks before headers
-    formattedText = formattedText.replace(/([^\n])#{1,6}\s/g, '$1\n\n#');
-    
-    // Add line breaks after headers
-    formattedText = formattedText.replace(/(#[^\n]+)/g, '$1\n');
-    
-    // Add proper spacing for numbered lists
-    formattedText = formattedText.replace(/(\d+)\./g, '\n$1.');
-    
-    return formattedText;
-  };
-
-  // Test function to simulate streaming response
-  const testFormatting = () => {
-    const sampleText = `3. **Eligibility and Requirements**:
-- To be eligible for the cash reward, customers must ensure their **Bank Account Details are accurate** in the PAMB's system. This must be done on or before June 15, 2024.
-- Policies must remain in force without partial withdrawals or negative endorsements until the reward is issued, which is expected to happen by February 28, 2025.
-
-### Cash Reward Structure
-
-The campaign's cash rewards are structured as follows:
-
-- **PRUMan/PRULady**: 
-  - RM125 upon meeting the specified minimum sum assured and recurring payment requirements.
-- **PRUWith You**:
-  - **Tier1**: RM250 for fulfilling minimum annual premium and rider conditions.
-  - **Tier2**: RM500 for meeting all Tier1 criteria alongside the sustainability requirements.`;
-
-    // Set the formatted text directly
-    setStreamingResponse(sampleText);
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!query.trim()) {
-      // For testing purposes, trigger the test formatting
-      testFormatting();
+      toast({
+        title: "Error",
+        description: "Please enter a query",
+        variant: "destructive",
+      });
       return;
     }
 
@@ -92,21 +49,17 @@ The campaign's cash rewards are structured as follows:
       }, (chunk: string) => {
         if (chunk.trim()) {
           setStreamingResponse(prev => {
-            const formattedChunk = formatMarkdownText(chunk);
-            
-            // Determine if we need a space or newline between chunks
             let separator = '';
             if (prev.endsWith('\n')) {
               separator = '';
-            } else if (formattedChunk.startsWith('#')) {
+            } else if (chunk.startsWith('#')) {
               separator = '\n\n';
-            } else if (formattedChunk.startsWith('-')) {
+            } else if (chunk.startsWith('-')) {
               separator = '\n';
             } else if (!prev.endsWith(' ')) {
               separator = ' ';
             }
-
-            return prev + separator + formattedChunk;
+            return prev + separator + chunk;
           });
         }
       });
@@ -136,7 +89,7 @@ The campaign's cash rewards are structured as follows:
           </label>
           <Input
             id="query"
-            placeholder="Enter your question... (or leave empty to see test formatting)"
+            placeholder="Enter your question..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             className="w-full"
@@ -164,7 +117,7 @@ The campaign's cash rewards are structured as follows:
               Processing...
             </>
           ) : (
-            query.trim() ? "Submit Query" : "Show Test Formatting"
+            "Submit Query"
           )}
         </Button>
       </form>
