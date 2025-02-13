@@ -22,7 +22,6 @@ export function QueryForm() {
   const responseRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
-  // Auto-scroll to bottom when new content arrives
   useEffect(() => {
     if (responseRef.current) {
       responseRef.current.scrollTop = responseRef.current.scrollHeight;
@@ -48,13 +47,24 @@ export function QueryForm() {
         query,
         mode,
       }, (chunk: string) => {
-        // Clean up the chunk and append it to the existing response
+        // Clean up the chunk and format markdown properly
         const cleanChunk = chunk.replace(/\n+/g, '\n').trim();
         if (cleanChunk) {
           setStreamingResponse(prev => {
-            // Ensure proper spacing between chunks
+            // Format markdown headings and lists properly
+            let formattedChunk = cleanChunk;
+            // Add proper spacing for markdown headings
+            if (formattedChunk.startsWith('#')) {
+              formattedChunk = '\n' + formattedChunk;
+            }
+            // Add proper spacing for markdown lists
+            if (formattedChunk.startsWith('-') || formattedChunk.startsWith('*')) {
+              formattedChunk = '\n' + formattedChunk;
+            }
+            
+            // Ensure proper spacing between sentences
             const separator = prev.endsWith('.') || prev.endsWith('?') || prev.endsWith('!') ? ' ' : '';
-            return prev + separator + cleanChunk;
+            return prev + separator + formattedChunk;
           });
         }
       });
@@ -76,7 +86,7 @@ export function QueryForm() {
   };
 
   return (
-    <div className="w-full max-w-2xl mx-auto p-6 space-y-8 bg-white rounded-lg shadow-lg animate-fade-in">
+    <div className="w-full max-w-3xl mx-auto p-6 space-y-8 bg-white rounded-lg shadow-lg animate-fade-in">
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="space-y-2">
           <label htmlFor="query" className="block text-sm font-medium text-gray-700">
@@ -120,10 +130,10 @@ export function QueryForm() {
       {streamingResponse && (
         <div 
           ref={responseRef}
-          className="mt-8 p-4 bg-gray-50 rounded-lg max-h-[500px] overflow-y-auto scroll-smooth"
+          className="mt-8 p-6 bg-gray-50 rounded-lg max-h-[600px] overflow-y-auto scroll-smooth border border-gray-200"
         >
-          <h3 className="font-semibold mb-2">Response:</h3>
-          <div className="prose max-w-none">
+          <h3 className="font-semibold text-lg mb-4 text-gray-800">Response:</h3>
+          <div className="prose prose-sm md:prose-base lg:prose-lg max-w-none prose-headings:font-semibold prose-p:text-gray-600 prose-p:leading-relaxed prose-li:text-gray-600 prose-strong:text-gray-800 prose-pre:bg-gray-100 prose-pre:p-4 prose-pre:rounded-lg">
             <ReactMarkdown>
               {streamingResponse}
             </ReactMarkdown>
