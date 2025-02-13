@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -57,31 +56,33 @@ export function QueryForm() {
 
   // Test function to simulate streaming response
   const testFormatting = () => {
-    const sampleText = `## Product Overview
-The **Premium Package** is our flagship offering designed for enterprise customers. This comprehensive solution provides multiple benefits and features.
+    const sampleText = `## Prime Cash Campaign Overview
 
-### Key Features
-1. **Real-time Analytics** with advanced reporting
-2. **24/7 Support** from our dedicated team
-- Priority response time
-- Dedicated account manager
-- Custom solutions
+The **Premium Package** rewards are structured as follows:
 
-### Pricing Tiers
-Our pricing structure is designed to accommodate different needs:
-- **Basic Tier**: Includes essential features
-- **Professional Tier**: Enhanced capabilities
-- **Enterprise Tier**: Full suite of features
+### Key Benefits
+1. **Instant Rewards** up to RM500
+2. **Flexible Options** for all customers
+- Priority processing
+- Dedicated support
+- Custom benefits
 
-### Integration Process
-The integration process follows these steps:
-1. Initial setup and configuration
-2. Data migration and validation
-3. User training and documentation
+### Eligibility Tiers
+We offer multiple tiers to suit your needs:
+- **Basic Tier**: RM125 reward
+- **Advanced Tier**: RM250 reward
+- **Premium Tier**: RM500 reward
 
-For more information, contact our **Sales Team** or visit our website.`;
+### How to Apply
+Follow these simple steps:
+1. Submit your application
+2. Choose your preferred plan
+3. Complete documentation
 
-    setStreamingResponse(formatMarkdownText(sampleText));
+For assistance, contact our **Customer Service** team.`;
+
+    // Set the formatted text directly without additional processing
+    setStreamingResponse(sampleText);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -185,7 +186,7 @@ For more information, contact our **Sales Team** or visit our website.`;
           className="mt-8 p-8 bg-gray-50 rounded-lg max-h-[800px] overflow-y-auto scroll-smooth border border-gray-200"
         >
           <h3 className="font-semibold text-xl mb-6 text-gray-800">Response:</h3>
-          <div className="prose prose-lg max-w-none prose-headings:font-semibold prose-headings:mt-8 prose-headings:mb-4 prose-p:text-gray-600 prose-p:leading-relaxed prose-p:mb-4 prose-li:text-gray-600 prose-li:my-2 prose-strong:text-gray-800 prose-strong:font-semibold prose-pre:bg-gray-100 prose-pre:p-4 prose-pre:rounded-lg">
+          <div className="prose prose-lg max-w-none prose-headings:font-semibold prose-headings:mt-8 prose-headings:mb-4 prose-p:text-gray-600 prose-p:leading-relaxed prose-p:mb-4 prose-li:text-gray-600 prose-li:my-2 prose-strong:text-gray-800 prose-strong:font-semibold">
             <ReactMarkdown>
               {streamingResponse}
             </ReactMarkdown>
