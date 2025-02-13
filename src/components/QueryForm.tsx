@@ -47,24 +47,33 @@ export function QueryForm() {
         query,
         mode,
       }, (chunk: string) => {
-        // Clean up the chunk and format markdown properly
         const cleanChunk = chunk.replace(/\n+/g, '\n').trim();
         if (cleanChunk) {
           setStreamingResponse(prev => {
-            // Format markdown headings and lists properly
             let formattedChunk = cleanChunk;
-            // Add proper spacing for markdown headings
+            
+            // Handle markdown headers
             if (formattedChunk.startsWith('#')) {
-              formattedChunk = '\n' + formattedChunk;
+              formattedChunk = '\n\n' + formattedChunk + '\n';
             }
-            // Add proper spacing for markdown lists
+            
+            // Handle markdown lists
             if (formattedChunk.startsWith('-') || formattedChunk.startsWith('*')) {
               formattedChunk = '\n' + formattedChunk;
             }
             
-            // Ensure proper spacing between sentences
-            const separator = prev.endsWith('.') || prev.endsWith('?') || prev.endsWith('!') ? ' ' : '';
-            return prev + separator + formattedChunk;
+            // Handle bold text
+            if (formattedChunk.includes('**')) {
+              formattedChunk = ' ' + formattedChunk + ' ';
+            }
+            
+            // Add proper spacing between paragraphs
+            if (formattedChunk.includes('.') || formattedChunk.includes('?') || formattedChunk.includes('!')) {
+              formattedChunk = formattedChunk + '\n';
+            }
+            
+            // Ensure proper spacing between chunks
+            return prev + (prev.endsWith('\n') ? '' : ' ') + formattedChunk;
           });
         }
       });
@@ -133,7 +142,7 @@ export function QueryForm() {
           className="mt-8 p-6 bg-gray-50 rounded-lg max-h-[600px] overflow-y-auto scroll-smooth border border-gray-200"
         >
           <h3 className="font-semibold text-lg mb-4 text-gray-800">Response:</h3>
-          <div className="prose prose-sm md:prose-base lg:prose-lg max-w-none prose-headings:font-semibold prose-p:text-gray-600 prose-p:leading-relaxed prose-li:text-gray-600 prose-strong:text-gray-800 prose-pre:bg-gray-100 prose-pre:p-4 prose-pre:rounded-lg">
+          <div className="prose prose-sm md:prose-base lg:prose-lg max-w-none prose-headings:font-semibold prose-headings:mt-6 prose-headings:mb-4 prose-p:text-gray-600 prose-p:leading-relaxed prose-li:text-gray-600 prose-li:my-1 prose-strong:text-gray-800 prose-strong:font-semibold prose-pre:bg-gray-100 prose-pre:p-4 prose-pre:rounded-lg">
             <ReactMarkdown>
               {streamingResponse}
             </ReactMarkdown>
