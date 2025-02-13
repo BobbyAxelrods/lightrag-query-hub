@@ -28,45 +28,14 @@ export function QueryForm() {
     }
   }, [streamingResponse]);
 
-  // Test function to demonstrate proper formatting
-  const testFormatting = () => {
-    const sampleText = `# Overview of the Prime Cash Campaign
-
-**Prime Cash Campaign** is a marketing initiative launched by **Prudential Assurance Malaysia Berhad (PAMB)** aimed at incentivizing customers to purchase specific medical insurance plans during a designated campaign period. This promotional campaign is particularly notable for its structured reward system, which provides financial incentives to eligible customers based on their policy selections and compliance with stipulated criteria.
-
-## Campaign Duration and Incentives
-
-The campaign is set to take place from **May 1, 2024, to May 31, 2024**. During this time, customers have the opportunity to earn cash rewards for purchasing eligible medical plans. The rewards vary based on specific criteria:
-
-- **PRUMan and PRULady Policies:** Customers can receive a cash reward of **RM125** when they purchase these policies, provided they meet certain preconditions.
-- **PRUWith You Policies:** The cash rewards are tiered based on the annual premium and additional riders attached to the policies:
-  - **Tier 1:** A cash reward of **RM250** is available for policies that meet a minimum annual premium of RM2,400 and include a Mom and Baby Care rider or Medical rider.
-  - **Tier 2:** Customers who opt for sustainability features and meet the Tier 1 criteria can receive a double cash reward of **RM500**.
-
-## Eligibility Requirements
-
-To qualify for these rewards, customers must ensure the following conditions are met:
-
-1. The policy must be in effect with no partial withdrawals until the end of the campaign.
-2. Customers must opt for an automatic recurring payment method by **June 15, 2024**.
-3. Premium payments must be current as of the crediting date of the rewards, expected by **February 28, 2025**.
-4. Customers must provide their correct bank account details to facilitate the crediting of the rewards.
-
-## Credit and Administration
-
-PAMB is responsible for administering and tracking the campaign, including managing eligibility and distributing cash rewards. Each reward is credited directly to the customer's designated bank account, emphasizing the need for accurate and up-to-date account information.
-
-## Conclusion
-
-The Prime Cash Campaign represents an essential strategy for Prudential to enhance customer engagement while promoting its insurance offerings. By providing a structured rewards system and clearly defined eligibility requirements, PAMB seeks to incentivize purchases and foster customer loyalty throughout the campaign period.`;
-
-    setStreamingResponse(sampleText);
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!query.trim()) {
-      testFormatting(); // For testing the formatting
+      toast({
+        title: "Error",
+        description: "Please enter a query",
+        variant: "destructive",
+      });
       return;
     }
 
@@ -74,24 +43,41 @@ The Prime Cash Campaign represents an essential strategy for Prudential to enhan
     setStreamingResponse("");
 
     try {
+      let buffer = "";
       await queryAPI({
         query,
         mode,
       }, (chunk: string) => {
         if (chunk.trim()) {
-          setStreamingResponse(prev => {
-            let separator = '';
-            if (prev.endsWith('\n')) {
-              separator = '';
-            } else if (chunk.startsWith('#')) {
-              separator = '\n\n';
-            } else if (chunk.startsWith('-')) {
-              separator = '\n';
-            } else if (!prev.endsWith(' ')) {
-              separator = ' ';
+          // Accumulate text in buffer
+          buffer += chunk;
+          
+          // Process buffer when we have complete sentences or markdown elements
+          if (chunk.endsWith('.') || chunk.endsWith('\n') || chunk.includes('**')) {
+            // Clean up the text by:
+            // 1. Remove extra spaces between words
+            // 2. Fix markdown formatting
+            // 3. Ensure proper line breaks
+            let processedText = buffer
+              .replace(/\s+/g, ' ')  // Remove multiple spaces
+              .replace(/\*\*\s+/g, '**')  // Remove spaces after opening bold
+              .replace(/\s+\*\*/g, '**')  // Remove spaces before closing bold
+              .replace(/\s+,/g, ',')  // Fix comma spacing
+              .replace(/\s+\./g, '.')  // Fix period spacing
+              .replace(/\(\s+/g, '(')  // Fix opening parenthesis
+              .replace(/\s+\)/g, ')')  // Fix closing parenthesis
+              .trim();
+
+            // Add proper line breaks for readability
+            if (processedText.startsWith('#')) {
+              processedText = '\n\n' + processedText;
+            } else if (processedText.startsWith('-')) {
+              processedText = '\n' + processedText;
             }
-            return prev + separator + chunk;
-          });
+
+            setStreamingResponse(prev => prev + processedText + ' ');
+            buffer = "";  // Clear buffer after processing
+          }
         }
       });
 
@@ -120,7 +106,7 @@ The Prime Cash Campaign represents an essential strategy for Prudential to enhan
           </label>
           <Input
             id="query"
-            placeholder="Enter your question... (or leave empty to see formatting example)"
+            placeholder="Enter your question..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             className="w-full"
@@ -148,7 +134,7 @@ The Prime Cash Campaign represents an essential strategy for Prudential to enhan
               Processing...
             </>
           ) : (
-            query.trim() ? "Submit Query" : "Show Formatting Example"
+            "Submit Query"
           )}
         </Button>
       </form>
