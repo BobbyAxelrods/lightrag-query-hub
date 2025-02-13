@@ -1,4 +1,3 @@
-
 import axios from "axios";
 
 const api = axios.create({
@@ -20,6 +19,7 @@ api.interceptors.response.use(
 export interface QueryRequest {
   query: string;
   mode: "local" | "global" | "hybrid";
+  only_need_context?: boolean;
 }
 
 export interface QueryResponse {
@@ -45,9 +45,41 @@ export interface UploadResponse {
   message: string;
 }
 
-export const queryAPI = async (params: QueryRequest): Promise<QueryResponse> => {
-  const response = await api.post("/query", params);
-  return response.data;
+export const queryAPI = async (params: QueryRequest, onChunk?: (chunk: string) => void): Promise<void> => {
+  try {
+    const response = await fetch("http://localhost:8000/query", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(params),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const reader = response.body?.getReader();
+    if (!reader) throw new Error("No reader available");
+
+    const decoder = new TextDecoder();
+    
+    while (true) {
+      const { done, value } = await reader.read();
+      
+      if (done) {
+        break;
+      }
+      
+      const chunk = decoder.decode(value);
+      if (onChunk) {
+        onChunk(chunk);
+      }
+    }
+  } catch (error) {
+    console.error("Streaming Error:", error);
+    throw error;
+  }
 };
 
 export const uploadFileAPI = async (file: File, uploadType: "initial" | "incremental"): Promise<UploadResponse> => {

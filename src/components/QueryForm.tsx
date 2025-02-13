@@ -10,7 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { queryAPI, QueryResponse } from "@/lib/api";
+import { queryAPI } from "@/lib/api";
 import { Loader2 } from "lucide-react";
 import ReactMarkdown from 'react-markdown';
 
@@ -18,7 +18,7 @@ export function QueryForm() {
   const [query, setQuery] = useState("");
   const [mode, setMode] = useState<"local" | "global" | "hybrid">("hybrid");
   const [isLoading, setIsLoading] = useState(false);
-  const [result, setResult] = useState<QueryResponse | null>(null);
+  const [streamingResponse, setStreamingResponse] = useState<string>("");
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -33,21 +33,25 @@ export function QueryForm() {
     }
 
     setIsLoading(true);
+    setStreamingResponse("");
+
     try {
-      const response = await queryAPI({
+      await queryAPI({
         query,
         mode,
+      }, (chunk: string) => {
+        setStreamingResponse(prev => prev + chunk);
       });
-      setResult(response);
+
       toast({
         title: "Success",
-        description: response.message || "Query processed successfully",
+        description: "Query processed successfully",
       });
     } catch (error: any) {
       console.error("Query Error:", error);
       toast({
         title: "Error",
-        description: error.response?.data?.detail || "Failed to process query",
+        description: error.message || "Failed to process query",
         variant: "destructive",
       });
     } finally {
@@ -97,12 +101,12 @@ export function QueryForm() {
         </Button>
       </form>
 
-      {result && (
+      {streamingResponse && (
         <div className="mt-8 p-4 bg-gray-50 rounded-lg">
           <h3 className="font-semibold mb-2">Response:</h3>
           <div className="prose max-w-none">
             <ReactMarkdown>
-              {typeof result.data === 'string' ? result.data : JSON.stringify(result.data, null, 2)}
+              {streamingResponse}
             </ReactMarkdown>
           </div>
         </div>
