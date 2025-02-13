@@ -13,15 +13,12 @@ import {
 import { queryAPI, QueryResponse } from "@/lib/api";
 import { Loader2 } from "lucide-react";
 import ReactMarkdown from 'react-markdown';
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
 
 export function QueryForm() {
   const [query, setQuery] = useState("");
   const [mode, setMode] = useState<"local" | "global" | "hybrid">("hybrid");
   const [isLoading, setIsLoading] = useState(false);
-  const [result, setResult] = useState<string | QueryResponse | null>(null);
-  const [isStreaming, setIsStreaming] = useState(true);
+  const [result, setResult] = useState<QueryResponse | null>(null);
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -36,37 +33,16 @@ export function QueryForm() {
     }
 
     setIsLoading(true);
-    setResult(null);
-    
     try {
-      if (isStreaming) {
-        // Handle streaming response
-        setResult(""); // Initialize empty string for streaming
-        await queryAPI(
-          {
-            query,
-            mode,
-            stream: true,
-          },
-          (chunk: string) => {
-            setResult(prev => (prev || "") + chunk);
-          }
-        );
-      } else {
-        // Handle regular response
-        const response = await queryAPI({
-          query,
-          mode,
-          stream: false,
-        });
-        if (response) {
-          setResult(response);
-          toast({
-            title: "Success",
-            description: response.message || "Query processed successfully",
-          });
-        }
-      }
+      const response = await queryAPI({
+        query,
+        mode,
+      });
+      setResult(response);
+      toast({
+        title: "Success",
+        description: response.message || "Query processed successfully",
+      });
     } catch (error: any) {
       console.error("Query Error:", error);
       toast({
@@ -109,15 +85,6 @@ export function QueryForm() {
           </Select>
         </div>
 
-        <div className="flex items-center space-x-2">
-          <Switch
-            id="streaming-mode"
-            checked={isStreaming}
-            onCheckedChange={setIsStreaming}
-          />
-          <Label htmlFor="streaming-mode">Streaming Mode</Label>
-        </div>
-
         <Button type="submit" className="w-full" disabled={isLoading}>
           {isLoading ? (
             <>
@@ -135,11 +102,7 @@ export function QueryForm() {
           <h3 className="font-semibold mb-2">Response:</h3>
           <div className="prose max-w-none">
             <ReactMarkdown>
-              {typeof result === 'string' 
-                ? result 
-                : typeof result.data === 'string' 
-                  ? result.data 
-                  : JSON.stringify(result.data, null, 2)}
+              {typeof result.data === 'string' ? result.data : JSON.stringify(result.data, null, 2)}
             </ReactMarkdown>
           </div>
         </div>

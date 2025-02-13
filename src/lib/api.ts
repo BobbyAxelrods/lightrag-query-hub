@@ -1,3 +1,4 @@
+
 import axios from "axios";
 
 const api = axios.create({
@@ -19,8 +20,6 @@ api.interceptors.response.use(
 export interface QueryRequest {
   query: string;
   mode: "local" | "global" | "hybrid";
-  stream?: boolean;
-  only_need_context?: boolean;
 }
 
 export interface QueryResponse {
@@ -46,22 +45,9 @@ export interface UploadResponse {
   message: string;
 }
 
-export const queryAPI = async (params: QueryRequest, onChunk?: (chunk: string) => void): Promise<QueryResponse | void> => {
-  if (params.stream) {
-    const response = await api.post("/query", params, {
-      responseType: 'stream',
-      onDownloadProgress: (progressEvent) => {
-        const chunk = progressEvent.event.target.response;
-        if (chunk && onChunk) {
-          onChunk(chunk);
-        }
-      },
-    });
-    return;
-  } else {
-    const response = await api.post("/query", params);
-    return response.data;
-  }
+export const queryAPI = async (params: QueryRequest): Promise<QueryResponse> => {
+  const response = await api.post("/query", params);
+  return response.data;
 };
 
 export const uploadFileAPI = async (file: File, uploadType: "initial" | "incremental"): Promise<UploadResponse> => {
