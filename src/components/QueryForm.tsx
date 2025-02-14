@@ -52,7 +52,6 @@ export function QueryForm() {
 
     try {
       let isFirstChunk = true;
-      let accumulatedResponse = "";
       
       await queryAPI({
         query,
@@ -66,14 +65,7 @@ export function QueryForm() {
         }
 
         if (chunk.trim()) {
-          const cleanedChunk = chunk
-            .replace(/\s+/g, ' ')  // Replace multiple spaces with single space
-            .replace(/\*\* /g, '**')  // Remove space after opening bold
-            .replace(/ \*\*/g, '**')  // Remove space before closing bold
-            .trim();
-          
-          accumulatedResponse += cleanedChunk;
-          setStreamingResponse(accumulatedResponse);
+          setStreamingResponse(prev => prev + chunk);
         }
       });
 
@@ -196,7 +188,7 @@ export function QueryForm() {
             prose-code:text-[#4A4036] prose-code:bg-white/50 prose-code:px-1 prose-code:rounded
             whitespace-pre-wrap break-words"
           >
-            <ReactMarkdown className="markdown-body">
+            <ReactMarkdown>
               {streamingResponse}
             </ReactMarkdown>
           </div>
