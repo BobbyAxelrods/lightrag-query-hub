@@ -19,6 +19,8 @@ export function Documents() {
   const { data: documents, isLoading, error } = useQuery({
     queryKey: ["documents"],
     queryFn: getDocumentsAPI,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
   });
 
   useEffect(() => {
