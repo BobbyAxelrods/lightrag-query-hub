@@ -19,6 +19,7 @@ api.interceptors.response.use(
 export interface QueryRequest {
   query: string;
   mode: "local" | "global" | "hybrid";
+  stream?: boolean;
   only_need_context?: boolean;
 }
 
@@ -47,7 +48,8 @@ export interface UploadResponse {
 
 export const queryAPI = async (params: QueryRequest, onChunk?: (chunk: string) => void): Promise<void> => {
   try {
-    const response = await fetch("http://localhost:8000/query", {
+    const endpoint = params.stream ? "/query_stream" : "/query";
+    const response = await fetch(`http://localhost:8000${endpoint}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -59,25 +61,32 @@ export const queryAPI = async (params: QueryRequest, onChunk?: (chunk: string) =
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    const reader = response.body?.getReader();
-    if (!reader) throw new Error("No reader available");
+    if (params.stream) {
+      const reader = response.body?.getReader();
+      if (!reader) throw new Error("No reader available");
 
-    const decoder = new TextDecoder();
-    
-    while (true) {
-      const { done, value } = await reader.read();
+      const decoder = new TextDecoder();
       
-      if (done) {
-        break;
+      while (true) {
+        const { done, value } = await reader.read();
+        
+        if (done) {
+          break;
+        }
+        
+        const chunk = decoder.decode(value);
+        if (onChunk) {
+          onChunk(chunk);
+        }
       }
-      
-      const chunk = decoder.decode(value);
+    } else {
+      const data = await response.json();
       if (onChunk) {
-        onChunk(chunk);
+        onChunk(data.response || data.message || "");
       }
     }
   } catch (error) {
-    console.error("Streaming Error:", error);
+    console.error("API Error:", error);
     throw error;
   }
 };

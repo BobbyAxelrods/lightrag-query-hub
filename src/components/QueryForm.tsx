@@ -1,7 +1,9 @@
+
 import { useState, useRef, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
 import {
   Select,
   SelectContent,
@@ -20,6 +22,7 @@ export function QueryForm() {
   const [streamingResponse, setStreamingResponse] = useState<string>("");
   const [contextBuildTime, setContextBuildTime] = useState<number | null>(null);
   const [totalTime, setTotalTime] = useState<number | null>(null);
+  const [isStreamEnabled, setIsStreamEnabled] = useState(true);
   const responseRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
@@ -54,6 +57,7 @@ export function QueryForm() {
       await queryAPI({
         query,
         mode,
+        stream: isStreamEnabled
       }, (chunk: string) => {
         if (isFirstChunk) {
           contextBuildEndTime = performance.now();
@@ -101,18 +105,34 @@ export function QueryForm() {
           />
         </div>
 
-        <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-700">Query Mode</label>
-          <Select value={mode} onValueChange={(value: "local" | "global" | "hybrid") => setMode(value)}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select mode" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="local">Local</SelectItem>
-              <SelectItem value="global">Global</SelectItem>
-              <SelectItem value="hybrid">Hybrid</SelectItem>
-            </SelectContent>
-          </Select>
+        <div className="flex items-center justify-between gap-4">
+          <div className="space-y-2 flex-1">
+            <label className="block text-sm font-medium text-gray-700">Query Mode</label>
+            <Select value={mode} onValueChange={(value: "local" | "global" | "hybrid") => setMode(value)}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select mode" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="local">Local</SelectItem>
+                <SelectItem value="global">Global</SelectItem>
+                <SelectItem value="hybrid">Hybrid</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <Switch
+              id="stream-mode"
+              checked={isStreamEnabled}
+              onCheckedChange={setIsStreamEnabled}
+            />
+            <label
+              htmlFor="stream-mode"
+              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+            >
+              Stream Mode
+            </label>
+          </div>
         </div>
 
         <Button type="submit" className="w-full" disabled={isLoading}>
