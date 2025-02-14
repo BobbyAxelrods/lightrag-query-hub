@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getGraphAPI } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
@@ -21,14 +21,27 @@ export function GraphVisualization() {
     enabled: showGraph,
   });
 
-  const handleToggleGraph = () => {
-    setShowGraph(!showGraph);
-    if (!showGraph) {
+  useEffect(() => {
+    if (showGraph) {
       toast({
         title: "Loading Graph",
         description: "Fetching network visualization data...",
       });
     }
+  }, [showGraph, toast]);
+
+  useEffect(() => {
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to load graph data",
+        variant: "destructive",
+      });
+    }
+  }, [error, toast]);
+
+  const handleToggleGraph = () => {
+    setShowGraph(!showGraph);
   };
 
   const handleToggleLabels = () => {
@@ -43,14 +56,6 @@ export function GraphVisualization() {
     setSelectedNode(node);
     setIsDetailsOpen(true);
   };
-
-  if (error) {
-    toast({
-      title: "Error",
-      description: "Failed to load graph data",
-      variant: "destructive",
-    });
-  }
 
   return (
     <div className="w-full max-w-4xl mx-auto mt-8">

@@ -87,7 +87,7 @@ export function NetworkGraph({
         networkRef.current,
         data,
         options
-      );
+      ) as NetworkInstance;
 
       networkInstanceRef.current = network;
 
@@ -108,8 +108,8 @@ export function NetworkGraph({
       if (hideIsolatedNodes) {
         graphData.nodes.forEach((node) => {
           const connectedEdges = network.getConnectedEdges(node.id);
-          if (connectedEdges.length === 0) {
-            network.body.data.nodes.update({
+          if (connectedEdges.length === 0 && networkInstanceRef.current) {
+            networkInstanceRef.current.body.data.nodes.update({
               id: node.id,
               hidden: true,
             });
@@ -120,7 +120,6 @@ export function NetworkGraph({
       console.error('Error initializing network:', err);
     }
 
-    // Cleanup function
     return () => {
       if (networkInstanceRef.current) {
         networkInstanceRef.current.destroy();
