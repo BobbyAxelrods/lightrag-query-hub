@@ -1,5 +1,5 @@
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useCallback } from "react";
 import { Network as VisNetwork } from "vis-network";
 import { GraphData } from "@/lib/api";
 import { createNetworkOptions } from "./networkUtils";
@@ -21,14 +21,8 @@ export function NetworkGraph({
   const networkRef = useRef<HTMLDivElement>(null);
   const networkInstanceRef = useRef<NetworkInstance | null>(null);
 
-  useEffect(() => {
+  const initializeNetwork = useCallback(() => {
     if (!networkRef.current || !graphData) return;
-
-    // Cleanup previous network instance
-    if (networkInstanceRef.current) {
-      networkInstanceRef.current.destroy();
-      networkInstanceRef.current = null;
-    }
 
     // Create a map of nodes by ID for faster lookup
     const nodesMap = new Map(graphData.nodes.map(node => [node.id, node]));
@@ -98,8 +92,6 @@ export function NetworkGraph({
         options
       ) as NetworkInstance;
 
-      networkInstanceRef.current = network;
-
       network.on('click', function(params) {
         if (params.nodes.length > 0) {
           const nodeId = params.nodes[0];
@@ -122,17 +114,29 @@ export function NetworkGraph({
         });
 
         nodes.forEach(node => {
-          if (!connectedNodeIds.has(node.id) && networkInstanceRef.current) {
-            networkInstanceRef.current.body.data.nodes.update({
+          if (!connectedNodeIds.has(node.id)) {
+            network.body.data.nodes.update({
               id: node.id,
               hidden: true,
             });
           }
         });
       }
+
+      networkInstanceRef.current = network;
     } catch (err) {
       console.error('Error initializing network:', err);
     }
+  }, [graphData, showLabels, hideIsolatedNodes, onNodeSelect]);
+
+  useEffect(() => {
+    // Cleanup previous network instance
+    if (networkInstanceRef.current) {
+      networkInstanceRef.current.destroy();
+      networkInstanceRef.current = null;
+    }
+
+    initializeNetwork();
 
     return () => {
       if (networkInstanceRef.current) {
@@ -140,7 +144,7 @@ export function NetworkGraph({
         networkInstanceRef.current = null;
       }
     };
-  }, [graphData, showLabels, hideIsolatedNodes, onNodeSelect]);
+  }, [initializeNetwork]);
 
   return (
     <div ref={networkRef} className="w-full h-[600px] border border-[#00FF81]/20 rounded-lg bg-gradient-to-br from-[#00F0FF]/5 to-[#FFA900]/5 backdrop-blur-sm" />
