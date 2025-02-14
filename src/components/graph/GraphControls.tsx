@@ -23,7 +23,7 @@ export function GraphControls({
     <div className="flex flex-wrap gap-2 mb-4">
       <Button
         onClick={onToggleGraph}
-        className="bg-gradient-to-r from-primary to-purple-600 text-white shadow-lg hover:shadow-xl transition-all duration-200"
+        className="bg-[#E38C40] hover:bg-[#F9B054] text-white shadow-lg hover:shadow-xl transition-all duration-200"
       >
         <Network className="mr-2 h-4 w-4" />
         {showGraph ? "Hide Network Graph" : "Show Network Graph"}
@@ -34,7 +34,7 @@ export function GraphControls({
           <Button
             onClick={onToggleLabels}
             variant="outline"
-            className="shadow-sm"
+            className="border-[#E38C40]/20 text-[#4A4036] hover:bg-[#F9B054]/10 shadow-sm"
           >
             {showLabels ? (
               <>
@@ -52,7 +52,7 @@ export function GraphControls({
           <Button
             onClick={onToggleIsolatedNodes}
             variant="outline"
-            className="shadow-sm"
+            className="border-[#E38C40]/20 text-[#4A4036] hover:bg-[#F9B054]/10 shadow-sm"
           >
             <Minimize2 className="mr-2 h-4 w-4" />
             {hideIsolatedNodes ? "Show All Nodes" : "Hide Isolated Nodes"}
