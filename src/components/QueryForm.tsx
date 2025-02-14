@@ -11,7 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { queryAPI } from "@/lib/api";
-import { Loader2 } from "lucide-react";
+import { Loader2, Clock } from "lucide-react";
 import ReactMarkdown from 'react-markdown';
 
 export function QueryForm() {
@@ -19,6 +19,8 @@ export function QueryForm() {
   const [mode, setMode] = useState<"local" | "global" | "hybrid">("hybrid");
   const [isLoading, setIsLoading] = useState(false);
   const [streamingResponse, setStreamingResponse] = useState<string>("");
+  const [contextBuildTime, setContextBuildTime] = useState<number | null>(null);
+  const [totalTime, setTotalTime] = useState<number | null>(null);
   const responseRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
@@ -41,34 +43,40 @@ export function QueryForm() {
 
     setIsLoading(true);
     setStreamingResponse("");
+    setContextBuildTime(null);
+    setTotalTime(null);
+
+    const startTime = performance.now();
+    let contextBuildEndTime: number | null = null;
 
     try {
       let buffer = "";
+      let isFirstChunk = true;
+      
       await queryAPI({
         query,
         mode,
       }, (chunk: string) => {
+        if (isFirstChunk) {
+          contextBuildEndTime = performance.now();
+          setContextBuildTime((contextBuildEndTime - startTime) / 1000);
+          isFirstChunk = false;
+        }
+
         if (chunk.trim()) {
-          // Accumulate text in buffer
           buffer += chunk;
           
-          // Process buffer when we have complete sentences or markdown elements
           if (chunk.endsWith('.') || chunk.endsWith('\n') || chunk.includes('**')) {
-            // Clean up the text by:
-            // 1. Remove extra spaces between words
-            // 2. Fix markdown formatting
-            // 3. Ensure proper line breaks
             let processedText = buffer
-              .replace(/\s+/g, ' ')  // Remove multiple spaces
-              .replace(/\*\*\s+/g, '**')  // Remove spaces after opening bold
-              .replace(/\s+\*\*/g, '**')  // Remove spaces before closing bold
-              .replace(/\s+,/g, ',')  // Fix comma spacing
-              .replace(/\s+\./g, '.')  // Fix period spacing
-              .replace(/\(\s+/g, '(')  // Fix opening parenthesis
-              .replace(/\s+\)/g, ')')  // Fix closing parenthesis
+              .replace(/\s+/g, ' ')
+              .replace(/\*\*\s+/g, '**')
+              .replace(/\s+\*\*/g, '**')
+              .replace(/\s+,/g, ',')
+              .replace(/\s+\./g, '.')
+              .replace(/\(\s+/g, '(')
+              .replace(/\s+\)/g, ')')
               .trim();
 
-            // Add proper line breaks for readability
             if (processedText.startsWith('#')) {
               processedText = '\n\n' + processedText;
             } else if (processedText.startsWith('-')) {
@@ -76,10 +84,13 @@ export function QueryForm() {
             }
 
             setStreamingResponse(prev => prev + processedText + ' ');
-            buffer = "";  // Clear buffer after processing
+            buffer = "";
           }
         }
       });
+
+      const endTime = performance.now();
+      setTotalTime((endTime - startTime) / 1000);
 
       toast({
         title: "Success",
@@ -138,6 +149,21 @@ export function QueryForm() {
           )}
         </Button>
       </form>
+
+      {(contextBuildTime !== null || totalTime !== null) && (
+        <div className="mt-4 space-y-2 text-sm text-gray-600">
+          <div className="flex items-center gap-2">
+            <Clock className="h-4 w-4" />
+            <span>Context Build Time: {contextBuildTime?.toFixed(2)}s</span>
+          </div>
+          {totalTime !== null && (
+            <div className="flex items-center gap-2">
+              <Clock className="h-4 w-4" />
+              <span>Total Time: {totalTime.toFixed(2)}s</span>
+            </div>
+          )}
+        </div>
+      )}
 
       {streamingResponse && (
         <div 
