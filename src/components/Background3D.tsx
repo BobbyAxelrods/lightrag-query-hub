@@ -8,9 +8,23 @@ export function Background3D() {
   useEffect(() => {
     if (!containerRef.current) return;
 
+    // Configuration
+    const conf = {
+      fov: 75,
+      cameraZ: 75,
+      xyCoef: 50,
+      zCoef: 10,
+      lightIntensity: 0.9,
+      ambientColor: 0x000000,
+      light1Color: 0x0E09DC,
+      light2Color: 0x1CD1E1,
+      light3Color: 0x18C02C,
+      light4Color: 0xee3bcf,
+    };
+
     // Setup
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const camera = new THREE.PerspectiveCamera(conf.fov, window.innerWidth / window.innerHeight, 0.1, 1000);
     const renderer = new THREE.WebGLRenderer({ 
       antialias: true,
       alpha: true 
@@ -20,8 +34,16 @@ export function Background3D() {
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     containerRef.current.appendChild(renderer.domElement);
 
-    // Create simple wave geometry
-    const geometry = new THREE.PlaneGeometry(30, 30, 50, 50);
+    // Mouse tracking
+    const mouse = new THREE.Vector2();
+    const handleMouseMove = (event: MouseEvent) => {
+      mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+      mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+    };
+    window.addEventListener('mousemove', handleMouseMove);
+
+    // Create plane
+    const planeGeometry = new THREE.PlaneGeometry(100, 100, 100, 100);
     const material = new THREE.MeshPhongMaterial({
       color: '#4338ca',
       wireframe: true,
@@ -30,36 +52,60 @@ export function Background3D() {
       opacity: 0.15,
     });
 
-    const plane = new THREE.Mesh(geometry, material);
-    plane.rotation.x = Math.PI / 3;
-    plane.position.y = -2;
+    const plane = new THREE.Mesh(planeGeometry, material);
+    plane.rotation.x = -Math.PI / 2 - 0.2;
+    plane.position.y = -25;
     scene.add(plane);
 
     // Add lights
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
-    scene.add(ambientLight);
-
-    const pointLight = new THREE.PointLight(0xffffff, 0.8);
-    pointLight.position.set(2, 3, 4);
-    scene.add(pointLight);
+    const lightDistance = 500;
+    
+    const light1 = new THREE.PointLight(conf.light1Color, conf.lightIntensity, lightDistance);
+    light1.position.set(0, 10, 30);
+    scene.add(light1);
+    
+    const light2 = new THREE.PointLight(conf.light2Color, conf.lightIntensity, lightDistance);
+    light2.position.set(0, -10, -30);
+    scene.add(light2);
+    
+    const light3 = new THREE.PointLight(conf.light3Color, conf.lightIntensity, lightDistance);
+    light3.position.set(30, 10, 0);
+    scene.add(light3);
+    
+    const light4 = new THREE.PointLight(conf.light4Color, conf.lightIntensity, lightDistance);
+    light4.position.set(-30, 10, 0);
+    scene.add(light4);
 
     // Position camera
-    camera.position.z = 8;
+    camera.position.z = 60;
 
     // Animation
-    let frame = 0;
     const animate = () => {
       requestAnimationFrame(animate);
-      frame += 0.005;
 
-      // Create wave effect
-      const positions = geometry.attributes.position.array as Float32Array;
+      // Animate plane vertices
+      const positions = planeGeometry.attributes.position.array as Float32Array;
+      const time = Date.now() * 0.0002;
+      
       for (let i = 0; i < positions.length; i += 3) {
         const x = positions[i];
-        const z = positions[i + 2];
-        positions[i + 1] = Math.sin((x + frame) * 0.3) * Math.cos((z + frame) * 0.3) * 0.5;
+        const y = positions[i + 1];
+        positions[i + 2] = Math.sin((x + time) * 0.3) * Math.cos((y + time) * 0.3) * 
+                          (mouse.x + mouse.y + 2) * 3;
       }
-      geometry.attributes.position.needsUpdate = true;
+      planeGeometry.attributes.position.needsUpdate = true;
+
+      // Animate lights
+      const d = 50;
+      const ltime = Date.now() * 0.001;
+      light1.position.x = Math.sin(ltime * 0.1) * d;
+      light1.position.z = Math.cos(ltime * 0.2) * d;
+      light2.position.x = Math.cos(ltime * 0.3) * d;
+      light2.position.z = Math.sin(ltime * 0.4) * d;
+      light3.position.x = Math.sin(ltime * 0.5) * d;
+      light3.position.z = Math.sin(ltime * 0.6) * d;
+      light4.position.x = Math.sin(ltime * 0.7) * d;
+      light4.position.z = Math.cos(ltime * 0.8) * d;
 
       renderer.render(scene, camera);
     };
@@ -80,6 +126,7 @@ export function Background3D() {
         containerRef.current.removeChild(renderer.domElement);
       }
       window.removeEventListener('resize', handleResize);
+      window.removeEventListener('mousemove', handleMouseMove);
     };
   }, []);
 
