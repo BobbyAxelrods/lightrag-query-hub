@@ -112,27 +112,25 @@ export const healthCheckAPI = async (): Promise<HealthResponse> => {
   return response.data;
 };
 
+export interface GraphNode {
+  id: string;
+  label: string;
+  properties: Record<string, any>;
+}
+
+export interface GraphEdge {
+  from: string;
+  to: string;
+  label: string;
+}
+
 export interface GraphData {
-  nodes: Array<{
-    id: string;
-    label: string;
-    properties: Record<string, any>;
-  }>;
-  edges: Array<{
-    source: string;
-    target: string;
-    label: string;
-  }>;
+  nodes: GraphNode[];
+  edges: GraphEdge[];
 }
 
-export interface GraphResponse {
-  status: string;
-  data: GraphData;
-  message: string | null;
-}
-
-export const getGraphAPI = async (): Promise<GraphResponse> => {
-  const response = await api.get("/neo4j/graph");
+export const getGraphAPI = async (): Promise<GraphData> => {
+  const response = await api.get("/get-graph");
   return response.data;
 };
 

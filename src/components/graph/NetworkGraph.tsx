@@ -1,6 +1,6 @@
 
 import { useEffect, useRef } from "react";
-import { Network as VisNetwork, Data } from "vis-network";
+import { Network as VisNetwork } from "vis-network";
 import { GraphData } from "@/lib/api";
 import { createNetworkOptions } from "./networkUtils";
 import { NetworkInstance } from "./types";
@@ -29,10 +29,10 @@ export function NetworkGraph({
       networkInstanceRef.current = null;
     }
 
-    const nodes = graphData.nodes.map((node: any) => ({
+    const nodes = graphData.nodes.map((node) => ({
       id: node.id,
-      label: node.entity_type?.replace(/"/g, '') || node.label?.replace(/"/g, '') || 'Unknown',
-      title: node.description?.replace(/"/g, '') || node.properties?.replace(/"/g, '') || '',
+      label: node.label || 'Unknown',
+      title: JSON.stringify(node.properties, null, 2),
       color: {
         background: '#2563EB',
         border: '#1E40AF',
@@ -46,10 +46,10 @@ export function NetworkGraph({
       size: 20
     }));
 
-    const edges = graphData.edges.map((edge: any) => ({
-      from: edge.start_id || edge.source,
-      to: edge.end_id || edge.target,
-      label: edge.description?.replace(/"/g, '') || '',
+    const edges = graphData.edges.map((edge) => ({
+      from: edge.from,
+      to: edge.to,
+      label: edge.label || '',
       arrows: {
         to: {
           enabled: true,
@@ -78,7 +78,7 @@ export function NetworkGraph({
       }
     }));
 
-    const data: Data = { nodes, edges };
+    const data = { nodes, edges };
     const options = createNetworkOptions();
 
     try {
@@ -91,7 +91,7 @@ export function NetworkGraph({
       networkInstanceRef.current.on('click', function(params) {
         if (params.nodes.length > 0) {
           const nodeId = params.nodes[0];
-          const node = graphData.nodes.find((n: any) => n.id === nodeId);
+          const node = graphData.nodes.find((n) => n.id === nodeId);
           if (node) {
             onNodeSelect(node);
           }
@@ -105,7 +105,7 @@ export function NetworkGraph({
       });
 
       if (hideIsolatedNodes) {
-        graphData.nodes.forEach((node: any) => {
+        graphData.nodes.forEach((node) => {
           const connectedEdges = networkInstanceRef.current?.getConnectedEdges(node.id) || [];
           if (connectedEdges.length === 0) {
             networkInstanceRef.current?.body.data.nodes.update({

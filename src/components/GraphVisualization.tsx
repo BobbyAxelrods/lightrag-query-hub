@@ -71,7 +71,7 @@ export function GraphVisualization() {
             </div>
           ) : graphData && (
             <NetworkGraph
-              graphData={graphData.data}
+              graphData={graphData}
               showLabels={showLabels}
               hideIsolatedNodes={hideIsolatedNodes}
               onNodeSelect={handleNodeSelect}
