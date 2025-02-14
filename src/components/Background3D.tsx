@@ -14,12 +14,12 @@ export function Background3D() {
       cameraZ: 75,
       xyCoef: 50,
       zCoef: 10,
-      lightIntensity: 0.9,
+      lightIntensity: 0.7,
       ambientColor: 0x000000,
-      light1Color: 0x0E09DC,
-      light2Color: 0x1CD1E1,
-      light3Color: 0x18C02C,
-      light4Color: 0xee3bcf,
+      light1Color: 0x33C3F0, // Calm sky blue
+      light2Color: 0xD3E4FD, // Soft blue
+      light3Color: 0xF1F0FB, // Soft gray
+      light4Color: 0xE5DEFF, // Soft purple
     };
 
     // Setup
@@ -45,11 +45,11 @@ export function Background3D() {
     // Create plane
     const planeGeometry = new THREE.PlaneGeometry(100, 100, 100, 100);
     const material = new THREE.MeshPhongMaterial({
-      color: '#4338ca',
+      color: '#33C3F0', // Calm sky blue
       wireframe: true,
       side: THREE.DoubleSide,
       transparent: true,
-      opacity: 0.15,
+      opacity: 0.1,
     });
 
     const plane = new THREE.Mesh(planeGeometry, material);
@@ -83,21 +83,21 @@ export function Background3D() {
     const animate = () => {
       requestAnimationFrame(animate);
 
-      // Animate plane vertices
+      // Animate plane vertices with gentler movement
       const positions = planeGeometry.attributes.position.array as Float32Array;
-      const time = Date.now() * 0.0002;
+      const time = Date.now() * 0.0001; // Slower movement
       
       for (let i = 0; i < positions.length; i += 3) {
         const x = positions[i];
         const y = positions[i + 1];
-        positions[i + 2] = Math.sin((x + time) * 0.3) * Math.cos((y + time) * 0.3) * 
-                          (mouse.x + mouse.y + 2) * 3;
+        positions[i + 2] = Math.sin((x + time) * 0.2) * Math.cos((y + time) * 0.2) * 
+                          (mouse.x + mouse.y + 2) * 2; // Reduced amplitude
       }
       planeGeometry.attributes.position.needsUpdate = true;
 
-      // Animate lights
+      // Animate lights with slower movement
       const d = 50;
-      const ltime = Date.now() * 0.001;
+      const ltime = Date.now() * 0.0005;
       light1.position.x = Math.sin(ltime * 0.1) * d;
       light1.position.z = Math.cos(ltime * 0.2) * d;
       light2.position.x = Math.cos(ltime * 0.3) * d;
@@ -133,7 +133,7 @@ export function Background3D() {
   return (
     <div 
       ref={containerRef} 
-      className="fixed inset-0 -z-10 bg-gradient-to-b from-indigo-950 to-slate-900"
+      className="fixed inset-0 -z-10 bg-gradient-to-b from-slate-900 to-blue-900/50"
     />
   );
 }
