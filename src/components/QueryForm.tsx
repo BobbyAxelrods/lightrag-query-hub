@@ -66,24 +66,39 @@ export function QueryForm() {
         if (chunk.trim()) {
           buffer += chunk;
           
+          // Process buffer when we have complete sentences, line breaks, or markdown
           if (chunk.endsWith('.') || chunk.endsWith('\n') || chunk.includes('**')) {
+            // Enhanced text processing for better markdown rendering
             let processedText = buffer
+              // Basic spacing fixes
               .replace(/\s+/g, ' ')
-              .replace(/\*\*\s+/g, '**')
-              .replace(/\s+\*\*/g, '**')
+              // Fix markdown bold syntax
+              .replace(/\*\*([^\s])/g, '** $1')  // Add space after opening **
+              .replace(/([^\s])\*\*/g, '$1 **')  // Add space before closing **
+              .replace(/\*\*\s+\*\*/g, '****')   // Handle empty bold tags
+              // Fix spacing around punctuation
               .replace(/\s+,/g, ',')
               .replace(/\s+\./g, '.')
+              .replace(/\s+:/g, ':')
+              .replace(/\s+;/g, ';')
+              // Fix parentheses spacing
               .replace(/\(\s+/g, '(')
               .replace(/\s+\)/g, ')')
+              // Clean up extra spaces around markdown
+              .replace(/\*\*\s+/g, '**')
+              .replace(/\s+\*\*/g, '**')
               .trim();
 
+            // Add proper line breaks for readability
             if (processedText.startsWith('#')) {
               processedText = '\n\n' + processedText;
             } else if (processedText.startsWith('-')) {
               processedText = '\n' + processedText;
             }
 
-            setStreamingResponse(prev => prev + processedText + ' ');
+            // Add space after the processed text unless it ends with specific characters
+            const needsSpace = !['.', '\n', ':', ';', ','].some(char => processedText.endsWith(char));
+            setStreamingResponse(prev => prev + processedText + (needsSpace ? ' ' : ''));
             buffer = "";
           }
         }
