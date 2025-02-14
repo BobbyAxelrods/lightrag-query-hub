@@ -64,7 +64,7 @@ export function GraphVisualization() {
       />
 
       {showGraph && (
-        <div className="mt-4 bg-white rounded-xl shadow-xl p-4 animate-fade-in">
+        <div className="mt-4 bg-white/90 backdrop-blur-sm rounded-xl shadow-xl p-4 animate-fade-in">
           {isLoading ? (
             <div className="flex items-center justify-center h-[600px]">
               <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary" />

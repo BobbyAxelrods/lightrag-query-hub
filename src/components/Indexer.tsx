@@ -1,5 +1,4 @@
-
-import { useEffect, useState } from "react"; // Added useState to imports
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getDocumentsAPI, uploadFileAPI } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
@@ -96,7 +95,7 @@ export function Indexer() {
 
   return (
     <div className="w-full max-w-4xl mx-auto space-y-8">
-      <div className="p-6 bg-white rounded-xl shadow-xl">
+      <div className="p-6 bg-white/90 backdrop-blur-sm rounded-xl shadow-xl">
         <Button
           variant="outline"
           className="w-full h-32 border-dashed border-2 hover:border-primary/50 hover:bg-gray-50/50 transition-all duration-200 shadow-sm hover:shadow-md"
@@ -125,7 +124,7 @@ export function Indexer() {
         )}
       </div>
 
-      <div className="p-6 bg-white rounded-xl shadow-xl">
+      <div className="p-6 bg-white/90 backdrop-blur-sm rounded-xl shadow-xl">
         <h2 className="text-2xl font-bold text-gray-900 mb-6">Indexed Documents</h2>
         <div className="overflow-x-auto">
           <Table>

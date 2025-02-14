@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -90,7 +89,7 @@ export function QueryForm() {
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto p-6 space-y-8 bg-white rounded-lg shadow-lg animate-fade-in">
+    <div className="w-full max-w-4xl mx-auto p-6 space-y-8 bg-white/90 backdrop-blur-sm rounded-lg shadow-lg animate-fade-in">
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="space-y-2">
           <label htmlFor="query" className="block text-sm font-medium text-gray-700">
