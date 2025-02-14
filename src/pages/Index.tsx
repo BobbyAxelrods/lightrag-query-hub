@@ -11,31 +11,35 @@ const Index = () => {
   const [activeTab, setActiveTab] = useState<"query" | "indexer">("query");
 
   return (
-    <div className="relative min-h-screen">
+    <div className="relative min-h-screen text-white">
       <Background3D />
       
       <div className="relative z-10">
         <Navigation />
         
-        <main className="container mx-auto px-4 py-8">
+        <main className="container mx-auto px-4 py-12">
           <div className="max-w-4xl mx-auto">
+            <h2 className="text-4xl font-bold text-center mb-12 bg-gradient-to-r from-white to-indigo-200 bg-clip-text text-transparent">
+              Interactive Knowledge Graph
+            </h2>
+            
             <div className="mb-8 flex justify-center space-x-4">
               <button
                 onClick={() => setActiveTab("query")}
-                className={`px-6 py-3 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg ${
+                className={`px-6 py-3 rounded-lg transition-all duration-200 ${
                   activeTab === "query"
-                    ? "bg-primary text-white transform hover:-translate-y-0.5"
-                    : "bg-white/90 backdrop-blur-sm text-gray-600 hover:bg-white"
+                    ? "bg-indigo-600 text-white shadow-lg shadow-indigo-500/20"
+                    : "bg-white/10 text-white/80 hover:bg-white/20"
                 }`}
               >
                 Query
               </button>
               <button
                 onClick={() => setActiveTab("indexer")}
-                className={`px-6 py-3 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg ${
+                className={`px-6 py-3 rounded-lg transition-all duration-200 ${
                   activeTab === "indexer"
-                    ? "bg-primary text-white transform hover:-translate-y-0.5"
-                    : "bg-white/90 backdrop-blur-sm text-gray-600 hover:bg-white"
+                    ? "bg-indigo-600 text-white shadow-lg shadow-indigo-500/20"
+                    : "bg-white/10 text-white/80 hover:bg-white/20"
                 }`}
               >
                 Indexer
