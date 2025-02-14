@@ -19,17 +19,13 @@ const Index = () => {
         <Navigation />
         
         <main className="container mx-auto px-4 py-12">
-          <div className="max-w-4xl mx-auto">
-            <h2 className="text-4xl font-bold text-center mb-12 bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent">
-              Interactive Knowledge Graph
-            </h2>
-            
+          <div className="max-w-4xl mx-auto">            
             <div className="mb-8 flex justify-center space-x-4">
               <button
                 onClick={() => setActiveTab("query")}
                 className={`px-6 py-3 rounded-lg transition-all duration-200 ${
                   activeTab === "query"
-                    ? "bg-blue-400/80 text-white shadow-lg shadow-blue-400/20"
+                    ? "bg-[#9b87f5] text-white shadow-lg shadow-[#9b87f5]/20"
                     : "bg-white/10 text-white/80 hover:bg-white/20"
                 }`}
               >
@@ -39,7 +35,7 @@ const Index = () => {
                 onClick={() => setActiveTab("indexer")}
                 className={`px-6 py-3 rounded-lg transition-all duration-200 ${
                   activeTab === "indexer"
-                    ? "bg-blue-400/80 text-white shadow-lg shadow-blue-400/20"
+                    ? "bg-[#8B5CF6] text-white shadow-lg shadow-[#8B5CF6]/20"
                     : "bg-white/10 text-white/80 hover:bg-white/20"
                 }`}
               >
@@ -49,7 +45,7 @@ const Index = () => {
                 onClick={() => setActiveTab("documents")}
                 className={`px-6 py-3 rounded-lg transition-all duration-200 ${
                   activeTab === "documents"
-                    ? "bg-blue-400/80 text-white shadow-lg shadow-blue-400/20"
+                    ? "bg-[#D946EF] text-white shadow-lg shadow-[#D946EF]/20"
                     : "bg-white/10 text-white/80 hover:bg-white/20"
                 }`}
               >

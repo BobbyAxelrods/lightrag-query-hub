@@ -1,4 +1,3 @@
-
 import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 
@@ -16,10 +15,10 @@ export function Background3D() {
       zCoef: 10,
       lightIntensity: 0.7,
       ambientColor: 0x000000,
-      light1Color: 0x1EAEDB,
-      light2Color: 0x0FA0CE,
-      light3Color: 0x7DD3FC,
-      light4Color: 0x38BDF8,
+      light1Color: 0xFFFFFF, // Pure white
+      light2Color: 0xFFFFFF, // Pure white
+      light3Color: 0xFFFFFF, // Pure white
+      light4Color: 0xFFFFFF, // Pure white
     };
 
     // Setup
@@ -37,7 +36,7 @@ export function Background3D() {
     // Create plane with more segments for smoother waves
     const planeGeometry = new THREE.PlaneGeometry(100, 100, 75, 75);
     const material = new THREE.MeshPhongMaterial({
-      color: '#38BDF8',
+      color: '#FFFFFF', // Pure white
       wireframe: true,
       side: THREE.DoubleSide,
       transparent: true,
@@ -133,7 +132,7 @@ export function Background3D() {
   return (
     <div 
       ref={containerRef} 
-      className="fixed inset-0 -z-10 bg-gradient-to-b from-[#0c4a6e] to-[#082f49]"
+      className="fixed inset-0 -z-10 bg-gradient-to-b from-[#1A1F2C] to-[#221F26]"
     />
   );
 }
