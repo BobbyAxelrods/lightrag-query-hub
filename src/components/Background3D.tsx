@@ -16,10 +16,10 @@ export function Background3D() {
       zCoef: 10,
       lightIntensity: 0.7,
       ambientColor: 0x000000,
-      light1Color: 0x1EAEDB, // Bright blue
-      light2Color: 0x0FA0CE, // Ocean blue
-      light3Color: 0x7DD3FC, // Sky blue
-      light4Color: 0x38BDF8, // Lighter blue
+      light1Color: 0x1EAEDB,
+      light2Color: 0x0FA0CE,
+      light3Color: 0x7DD3FC,
+      light4Color: 0x38BDF8,
     };
 
     // Setup
@@ -34,14 +34,14 @@ export function Background3D() {
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     containerRef.current.appendChild(renderer.domElement);
 
-    // Create plane
-    const planeGeometry = new THREE.PlaneGeometry(100, 100, 50, 50);
+    // Create plane with more segments for smoother waves
+    const planeGeometry = new THREE.PlaneGeometry(100, 100, 75, 75);
     const material = new THREE.MeshPhongMaterial({
-      color: '#38BDF8', // Lighter blue
+      color: '#38BDF8',
       wireframe: true,
       side: THREE.DoubleSide,
       transparent: true,
-      opacity: 0.3, // Increased opacity
+      opacity: 0.3,
     });
 
     const plane = new THREE.Mesh(planeGeometry, material);
@@ -71,37 +71,42 @@ export function Background3D() {
     // Position camera
     camera.position.z = 60;
 
+    // Animation state
+    let waveOffset = 0;
+
     // Animation
     const animate = () => {
       requestAnimationFrame(animate);
 
-      // Animate plane vertices with more pronounced waves
+      // Update wave offset
+      waveOffset += 0.03; // Control wave speed
+
+      // Animate plane vertices with dynamic waves
       const positions = planeGeometry.attributes.position.array as Float32Array;
-      const time = Date.now() * 0.0002;
       
       for (let i = 0; i < positions.length; i += 3) {
         const x = positions[i];
         const y = positions[i + 1];
         
-        // Create wave pattern using multiple sine waves with larger amplitude
+        // Create dynamic wave pattern using multiple sine waves
         positions[i + 2] = 
-          Math.sin((x + time) * 0.3) * 4 + // Primary wave (increased amplitude)
-          Math.sin((y + time) * 0.2) * 3 + // Secondary wave (increased amplitude)
-          Math.sin((x + y + time) * 0.1) * 2; // Diagonal wave (increased amplitude)
+          Math.sin(x * 0.3 + waveOffset) * 4 + // Primary wave
+          Math.sin(y * 0.2 + waveOffset * 0.8) * 3 + // Secondary wave
+          Math.sin((x + y) * 0.1 + waveOffset * 1.2) * 2; // Diagonal wave
       }
+      
       planeGeometry.attributes.position.needsUpdate = true;
 
       // Animate lights
       const d = 50;
-      const ltime = Date.now() * 0.001;
-      light1.position.x = Math.sin(ltime * 0.1) * d;
-      light1.position.z = Math.cos(ltime * 0.2) * d;
-      light2.position.x = Math.cos(ltime * 0.3) * d;
-      light2.position.z = Math.sin(ltime * 0.4) * d;
-      light3.position.x = Math.sin(ltime * 0.5) * d;
-      light3.position.z = Math.sin(ltime * 0.6) * d;
-      light4.position.x = Math.sin(ltime * 0.7) * d;
-      light4.position.z = Math.cos(ltime * 0.8) * d;
+      light1.position.x = Math.sin(waveOffset * 0.5) * d;
+      light1.position.z = Math.cos(waveOffset * 0.6) * d;
+      light2.position.x = Math.cos(waveOffset * 0.7) * d;
+      light2.position.z = Math.sin(waveOffset * 0.8) * d;
+      light3.position.x = Math.sin(waveOffset * 0.9) * d;
+      light3.position.z = Math.sin(waveOffset * 1.0) * d;
+      light4.position.x = Math.sin(waveOffset * 1.1) * d;
+      light4.position.z = Math.cos(waveOffset * 1.2) * d;
 
       renderer.render(scene, camera);
     };
