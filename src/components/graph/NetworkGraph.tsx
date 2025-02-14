@@ -30,9 +30,12 @@ export function NetworkGraph({
       networkInstanceRef.current = null;
     }
 
+    // Create a map of nodes by ID for faster lookup
+    const nodesMap = new Map(graphData.nodes.map(node => [node.id, node]));
+
     const nodes = graphData.nodes.map((node) => ({
       id: node.id,
-      label: node.label || 'Unknown',
+      label: node.label || String(node.id),
       title: JSON.stringify(node.properties, null, 2),
       color: {
         background: '#E38C40',
@@ -47,7 +50,13 @@ export function NetworkGraph({
       size: 20
     }));
 
-    const edges = graphData.edges.map((edge) => ({
+    // Filter out edges that don't have valid source and target nodes
+    const validEdges = graphData.edges.filter(edge => 
+      nodesMap.has(edge.from) && nodesMap.has(edge.to)
+    );
+
+    const edges = validEdges.map((edge) => ({
+      id: `${edge.from}-${edge.to}`,
       from: edge.from,
       to: edge.to,
       label: edge.label || '',
@@ -94,7 +103,7 @@ export function NetworkGraph({
       network.on('click', function(params) {
         if (params.nodes.length > 0) {
           const nodeId = params.nodes[0];
-          const node = graphData.nodes.find((n) => n.id === nodeId);
+          const node = nodesMap.get(nodeId);
           if (node) {
             onNodeSelect(node);
           }
@@ -106,9 +115,14 @@ export function NetworkGraph({
       });
 
       if (hideIsolatedNodes) {
-        graphData.nodes.forEach((node) => {
-          const connectedEdges = network.getConnectedEdges(node.id);
-          if (connectedEdges.length === 0 && networkInstanceRef.current) {
+        const connectedNodeIds = new Set();
+        edges.forEach(edge => {
+          connectedNodeIds.add(edge.from);
+          connectedNodeIds.add(edge.to);
+        });
+
+        nodes.forEach(node => {
+          if (!connectedNodeIds.has(node.id) && networkInstanceRef.current) {
             networkInstanceRef.current.body.data.nodes.update({
               id: node.id,
               hidden: true,
