@@ -38,12 +38,12 @@ export function NetworkGraph({
       label: node.label || String(node.id),
       title: JSON.stringify(node.properties, null, 2),
       color: {
-        background: '#E38C40',
-        border: '#F9B054',
-        highlight: { background: '#F9B054', border: '#E38C40' }
+        background: '#00F0FF',
+        border: '#00FF81',
+        highlight: { background: '#00FF81', border: '#00F0FF' }
       },
       font: { 
-        color: '#4A4036', 
+        color: '#FFA900', 
         size: showLabels ? 14 : 0 
       },
       shape: 'dot',
@@ -65,18 +65,18 @@ export function NetworkGraph({
           enabled: true,
           type: 'arrow',
           scaleFactor: 1.5,
-          color: '#4A4036'
+          color: '#FF6800'
         }
       },
       color: { 
-        color: '#E38C40', 
-        highlight: '#F9B054',
-        opacity: 1.0
+        color: '#00F0FF', 
+        highlight: '#00FF81',
+        opacity: 0.8
       },
       font: { 
         size: 12, 
         align: 'middle',
-        color: '#4A4036'
+        color: '#FFA900'
       },
       length: 250,
       width: 2,
@@ -143,6 +143,6 @@ export function NetworkGraph({
   }, [graphData, showLabels, hideIsolatedNodes, onNodeSelect]);
 
   return (
-    <div ref={networkRef} className="w-full h-[600px] border border-[#E38C40]/20 rounded-lg bg-[#F5F5F3]/50" />
+    <div ref={networkRef} className="w-full h-[600px] border border-[#00FF81]/20 rounded-lg bg-gradient-to-br from-[#00F0FF]/5 to-[#FFA900]/5 backdrop-blur-sm" />
   );
 }
