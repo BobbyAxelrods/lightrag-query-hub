@@ -20,17 +20,17 @@ export function Background3D() {
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     containerRef.current.appendChild(renderer.domElement);
 
-    // Create plane geometry
-    const planeGeometry = new THREE.PlaneGeometry(20, 20, 150, 150);
+    // Create simple wave geometry
+    const geometry = new THREE.PlaneGeometry(30, 30, 50, 50);
     const material = new THREE.MeshPhongMaterial({
       color: '#4338ca',
       wireframe: true,
       side: THREE.DoubleSide,
       transparent: true,
-      opacity: 0.3,
+      opacity: 0.15,
     });
 
-    const plane = new THREE.Mesh(planeGeometry, material);
+    const plane = new THREE.Mesh(geometry, material);
     plane.rotation.x = Math.PI / 3;
     plane.position.y = -2;
     scene.add(plane);
@@ -39,26 +39,27 @@ export function Background3D() {
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
     scene.add(ambientLight);
 
-    const pointLight = new THREE.PointLight(0xffffff, 1);
+    const pointLight = new THREE.PointLight(0xffffff, 0.8);
     pointLight.position.set(2, 3, 4);
     scene.add(pointLight);
 
     // Position camera
-    camera.position.z = 5;
+    camera.position.z = 8;
 
     // Animation
     let frame = 0;
     const animate = () => {
       requestAnimationFrame(animate);
-      frame += 0.01;
+      frame += 0.005;
 
-      const positions = planeGeometry.attributes.position.array as Float32Array;
+      // Create wave effect
+      const positions = geometry.attributes.position.array as Float32Array;
       for (let i = 0; i < positions.length; i += 3) {
         const x = positions[i];
         const z = positions[i + 2];
         positions[i + 1] = Math.sin((x + frame) * 0.3) * Math.cos((z + frame) * 0.3) * 0.5;
       }
-      planeGeometry.attributes.position.needsUpdate = true;
+      geometry.attributes.position.needsUpdate = true;
 
       renderer.render(scene, camera);
     };

@@ -9,7 +9,7 @@ export function Navigation() {
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center space-x-8">
             <h1 className="text-2xl font-bold bg-gradient-to-r from-white to-indigo-200 bg-clip-text text-transparent">
-              LightRAG Query Assistant
+              GraphRAG (Lite)
             </h1>
             <nav className="hidden md:flex space-x-4">
               <a href="#features" className="text-gray-300 hover:text-white transition-colors">
