@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -53,6 +52,7 @@ export function QueryForm() {
 
     try {
       let isFirstChunk = true;
+      let accumulatedResponse = "";
       
       await queryAPI({
         query,
@@ -66,7 +66,14 @@ export function QueryForm() {
         }
 
         if (chunk.trim()) {
-          setStreamingResponse(prev => prev + chunk);
+          const cleanedChunk = chunk
+            .replace(/\s+/g, ' ')  // Replace multiple spaces with single space
+            .replace(/\*\* /g, '**')  // Remove space after opening bold
+            .replace(/ \*\*/g, '**')  // Remove space before closing bold
+            .trim();
+          
+          accumulatedResponse += cleanedChunk;
+          setStreamingResponse(accumulatedResponse);
         }
       });
 
@@ -186,9 +193,10 @@ export function QueryForm() {
             [&>ol]:list-decimal [&>ol]:pl-6
             [&_li]:my-1 [&_li]:pl-2
             prose-pre:bg-white/50 prose-pre:p-4 prose-pre:rounded-lg
-            prose-code:text-[#4A4036] prose-code:bg-white/50 prose-code:px-1 prose-code:rounded"
+            prose-code:text-[#4A4036] prose-code:bg-white/50 prose-code:px-1 prose-code:rounded
+            whitespace-pre-wrap break-words"
           >
-            <ReactMarkdown>
+            <ReactMarkdown className="markdown-body">
               {streamingResponse}
             </ReactMarkdown>
           </div>
