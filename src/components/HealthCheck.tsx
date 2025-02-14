@@ -32,10 +32,10 @@ export function HealthCheck() {
         disabled={isChecking}
         className={`flex items-center space-x-2 shadow-lg hover:shadow-xl transition-all duration-200 backdrop-blur-sm ${
           status === "healthy"
-            ? "text-green-600 border-green-600 bg-green-50/50"
+            ? "text-green-400 border-green-400/30 bg-green-400/10"
             : status === "unhealthy"
-            ? "text-red-600 border-red-600 bg-red-50/50"
-            : "bg-white/50"
+            ? "text-red-400 border-red-400/30 bg-red-400/10"
+            : "bg-[#2A2A35] text-gray-300 border-[#3F3F4B]"
         }`}
       >
         <Activity className="h-4 w-4" />

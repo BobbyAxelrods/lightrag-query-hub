@@ -25,8 +25,8 @@ const Index = () => {
                 onClick={() => setActiveTab("query")}
                 className={`px-6 py-3 rounded-lg transition-all duration-200 ${
                   activeTab === "query"
-                    ? "bg-[#9b87f5] text-white shadow-lg shadow-[#9b87f5]/20"
-                    : "bg-white/10 text-white/80 hover:bg-white/20"
+                    ? "bg-[#6366F1] text-white shadow-lg"
+                    : "bg-[#2A2A35] text-gray-300 hover:bg-[#32323E]"
                 }`}
               >
                 Query
@@ -35,8 +35,8 @@ const Index = () => {
                 onClick={() => setActiveTab("indexer")}
                 className={`px-6 py-3 rounded-lg transition-all duration-200 ${
                   activeTab === "indexer"
-                    ? "bg-[#8B5CF6] text-white shadow-lg shadow-[#8B5CF6]/20"
-                    : "bg-white/10 text-white/80 hover:bg-white/20"
+                    ? "bg-[#6366F1] text-white shadow-lg"
+                    : "bg-[#2A2A35] text-gray-300 hover:bg-[#32323E]"
                 }`}
               >
                 Indexer
@@ -45,8 +45,8 @@ const Index = () => {
                 onClick={() => setActiveTab("documents")}
                 className={`px-6 py-3 rounded-lg transition-all duration-200 ${
                   activeTab === "documents"
-                    ? "bg-[#D946EF] text-white shadow-lg shadow-[#D946EF]/20"
-                    : "bg-white/10 text-white/80 hover:bg-white/20"
+                    ? "bg-[#6366F1] text-white shadow-lg"
+                    : "bg-[#2A2A35] text-gray-300 hover:bg-[#32323E]"
                 }`}
               >
                 Documents

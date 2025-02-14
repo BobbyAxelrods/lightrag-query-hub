@@ -132,7 +132,7 @@ export function Background3D() {
   return (
     <div 
       ref={containerRef} 
-      className="fixed inset-0 -z-10 bg-gradient-to-b from-[#1A1F2C] to-[#221F26]"
+      className="fixed inset-0 -z-10 bg-[#1A1A23]"
     />
   );
 }
