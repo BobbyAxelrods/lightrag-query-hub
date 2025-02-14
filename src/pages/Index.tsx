@@ -12,7 +12,7 @@ const Index = () => {
   const [activeTab, setActiveTab] = useState<"query" | "indexer" | "documents">("query");
 
   return (
-    <div className="relative min-h-screen text-white">
+    <div className="relative min-h-screen text-[#4A4036]">
       <Background3D />
       
       <div className="relative z-10">
@@ -25,8 +25,8 @@ const Index = () => {
                 onClick={() => setActiveTab("query")}
                 className={`px-6 py-3 rounded-lg transition-all duration-200 ${
                   activeTab === "query"
-                    ? "bg-[#6366F1] text-white shadow-lg"
-                    : "bg-[#2A2A35] text-gray-300 hover:bg-[#32323E]"
+                    ? "bg-[#E38C40] text-white shadow-lg"
+                    : "bg-white/80 text-[#4A4036] hover:bg-[#F9B054]/20"
                 }`}
               >
                 Query
@@ -35,8 +35,8 @@ const Index = () => {
                 onClick={() => setActiveTab("indexer")}
                 className={`px-6 py-3 rounded-lg transition-all duration-200 ${
                   activeTab === "indexer"
-                    ? "bg-[#6366F1] text-white shadow-lg"
-                    : "bg-[#2A2A35] text-gray-300 hover:bg-[#32323E]"
+                    ? "bg-[#E38C40] text-white shadow-lg"
+                    : "bg-white/80 text-[#4A4036] hover:bg-[#F9B054]/20"
                 }`}
               >
                 Indexer
@@ -45,8 +45,8 @@ const Index = () => {
                 onClick={() => setActiveTab("documents")}
                 className={`px-6 py-3 rounded-lg transition-all duration-200 ${
                   activeTab === "documents"
-                    ? "bg-[#6366F1] text-white shadow-lg"
-                    : "bg-[#2A2A35] text-gray-300 hover:bg-[#32323E]"
+                    ? "bg-[#E38C40] text-white shadow-lg"
+                    : "bg-white/80 text-[#4A4036] hover:bg-[#F9B054]/20"
                 }`}
               >
                 Documents

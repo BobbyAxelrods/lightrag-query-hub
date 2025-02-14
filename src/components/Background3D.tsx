@@ -132,7 +132,7 @@ export function Background3D() {
   return (
     <div 
       ref={containerRef} 
-      className="fixed inset-0 -z-10 bg-[#1A1A23]"
+      className="fixed inset-0 -z-10 bg-[#F5F5F3]" // Light cream background
     />
   );
 }
