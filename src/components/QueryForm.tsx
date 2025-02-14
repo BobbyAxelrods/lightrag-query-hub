@@ -1,3 +1,4 @@
+
 import { useState, useRef, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -58,14 +59,20 @@ export function QueryForm() {
         mode,
         stream: isStreamEnabled
       }, (chunk: string) => {
-        if (isFirstChunk) {
+        if (isStreamEnabled) {
+          if (isFirstChunk) {
+            contextBuildEndTime = performance.now();
+            setContextBuildTime((contextBuildEndTime - startTime) / 1000);
+            isFirstChunk = false;
+          }
+          if (chunk.trim()) {
+            setStreamingResponse(prev => prev + chunk);
+          }
+        } else {
+          // For non-streaming response, set the entire response at once
+          setStreamingResponse(chunk);
           contextBuildEndTime = performance.now();
           setContextBuildTime((contextBuildEndTime - startTime) / 1000);
-          isFirstChunk = false;
-        }
-
-        if (chunk.trim()) {
-          setStreamingResponse(prev => prev + chunk);
         }
       });
 
