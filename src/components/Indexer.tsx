@@ -1,5 +1,5 @@
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react"; // Added useState to imports
 import { useQuery } from "@tanstack/react-query";
 import { getDocumentsAPI, uploadFileAPI } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
