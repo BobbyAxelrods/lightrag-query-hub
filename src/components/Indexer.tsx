@@ -1,40 +1,15 @@
 
-import { useEffect, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { getDocumentsAPI, uploadFileAPI } from "@/lib/api";
+import { useState } from "react";
+import { uploadFileAPI } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Upload } from "lucide-react";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 
 export function Indexer() {
   const { toast } = useToast();
   const [progress, setProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
-  
-  const { data: documents, isLoading, error, refetch } = useQuery({
-    queryKey: ["documents"],
-    queryFn: getDocumentsAPI,
-  });
-
-  useEffect(() => {
-    if (error) {
-      toast({
-        title: "Error",
-        description: "Failed to fetch documents",
-        variant: "destructive",
-      });
-    }
-  }, [error, toast]);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -66,9 +41,6 @@ export function Indexer() {
         title: "Success",
         description: response.message,
       });
-      
-      // Refresh the documents list
-      refetch();
     } catch (error) {
       toast({
         title: "Error",
@@ -118,46 +90,6 @@ export function Indexer() {
           )}
         </div>
       </div>
-
-      {!isLoading && documents && (
-        <div className="p-6 bg-white rounded-xl shadow-xl">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">Indexed Documents</h2>
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Document ID</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Created At</TableHead>
-                  <TableHead>Updated At</TableHead>
-                  <TableHead>Content Summary</TableHead>
-                  <TableHead>Chunks Count</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {Object.entries(documents?.data || {}).map(([id, doc]: [string, any]) => (
-                  <TableRow key={id}>
-                    <TableCell className="font-medium">{id}</TableCell>
-                    <TableCell>
-                      <Badge 
-                        variant={doc.status === "processed" ? "secondary" : "destructive"}
-                      >
-                        {doc.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>{new Date(doc.created_at).toLocaleString()}</TableCell>
-                    <TableCell>{new Date(doc.updated_at).toLocaleString()}</TableCell>
-                    <TableCell className="max-w-md truncate">
-                      {doc.content_summary}
-                    </TableCell>
-                    <TableCell>{doc.chunks_count}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
