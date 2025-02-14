@@ -5,6 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Upload } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
+import { Documents } from "@/components/Documents";
 
 export function Indexer() {
   const { toast } = useToast();
@@ -90,6 +91,8 @@ export function Indexer() {
           )}
         </div>
       </div>
+
+      <Documents />
     </div>
   );
 }
