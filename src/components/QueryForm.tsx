@@ -89,7 +89,7 @@ export function QueryForm() {
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto p-6 space-y-8 bg-white/80 backdrop-blur-sm rounded-lg shadow-xl animate-fade-in">
+    <div className="w-full max-w-4xl mx-auto p-6 space-y-8 bg-[#F5F5F3]/80 backdrop-blur-sm rounded-lg shadow-xl animate-fade-in">
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="space-y-2">
           <label htmlFor="query" className="block text-sm font-medium text-[#4A4036]">
@@ -137,7 +137,7 @@ export function QueryForm() {
 
         <Button 
           type="submit" 
-          className="w-full bg-[#E38C40] hover:bg-[#F9B054] text-white" 
+          className="w-full bg-[#E38C40] hover:bg-[#F9B054] text-white shadow-lg hover:shadow-xl transition-all duration-200" 
           disabled={isLoading}
         >
           {isLoading ? (
@@ -169,7 +169,7 @@ export function QueryForm() {
       {streamingResponse && (
         <div 
           ref={responseRef}
-          className="mt-8 p-8 bg-white/50 rounded-lg max-h-[800px] overflow-y-auto scroll-smooth border border-[#E38C40]/20"
+          className="mt-8 p-8 bg-[#F5F5F3]/90 rounded-lg max-h-[800px] overflow-y-auto scroll-smooth border border-[#E38C40]/20"
         >
           <h3 className="font-semibold text-xl mb-6 text-[#4A4036]">Response:</h3>
           <div className="prose prose-lg max-w-none 

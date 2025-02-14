@@ -25,8 +25,8 @@ const Index = () => {
                 onClick={() => setActiveTab("query")}
                 className={`px-6 py-3 rounded-lg transition-all duration-200 ${
                   activeTab === "query"
-                    ? "bg-[#E38C40] text-white shadow-lg"
-                    : "bg-white/80 text-[#4A4036] hover:bg-[#F9B054]/20"
+                    ? "bg-[#E38C40] text-white shadow-lg shadow-[#E38C40]/20"
+                    : "bg-[#F9B054]/10 text-[#4A4036] hover:bg-[#F9B054]/20"
                 }`}
               >
                 Query
@@ -35,8 +35,8 @@ const Index = () => {
                 onClick={() => setActiveTab("indexer")}
                 className={`px-6 py-3 rounded-lg transition-all duration-200 ${
                   activeTab === "indexer"
-                    ? "bg-[#E38C40] text-white shadow-lg"
-                    : "bg-white/80 text-[#4A4036] hover:bg-[#F9B054]/20"
+                    ? "bg-[#F9B054] text-white shadow-lg shadow-[#F9B054]/20"
+                    : "bg-[#F9B054]/10 text-[#4A4036] hover:bg-[#F9B054]/20"
                 }`}
               >
                 Indexer
@@ -45,8 +45,8 @@ const Index = () => {
                 onClick={() => setActiveTab("documents")}
                 className={`px-6 py-3 rounded-lg transition-all duration-200 ${
                   activeTab === "documents"
-                    ? "bg-[#E38C40] text-white shadow-lg"
-                    : "bg-white/80 text-[#4A4036] hover:bg-[#F9B054]/20"
+                    ? "bg-[#4A4036] text-white shadow-lg shadow-[#4A4036]/20"
+                    : "bg-[#F9B054]/10 text-[#4A4036] hover:bg-[#F9B054]/20"
                 }`}
               >
                 Documents

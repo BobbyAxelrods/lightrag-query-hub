@@ -15,10 +15,10 @@ export function Background3D() {
       zCoef: 10,
       lightIntensity: 0.7,
       ambientColor: 0x000000,
-      light1Color: 0xFFFFFF, // Pure white
-      light2Color: 0xFFFFFF, // Pure white
-      light3Color: 0xFFFFFF, // Pure white
-      light4Color: 0xFFFFFF, // Pure white
+      light1Color: 0xE38C40, // Orange
+      light2Color: 0xF9B054, // Yellow/Orange
+      light3Color: 0xF5F5F3, // Cream
+      light4Color: 0x4A4036, // Brown
     };
 
     // Setup
@@ -36,11 +36,11 @@ export function Background3D() {
     // Create plane with more segments for smoother waves
     const planeGeometry = new THREE.PlaneGeometry(100, 100, 75, 75);
     const material = new THREE.MeshPhongMaterial({
-      color: '#FFFFFF', // Pure white
+      color: '#E38C40', // Orange for wave color
       wireframe: true,
       side: THREE.DoubleSide,
       transparent: true,
-      opacity: 0.3,
+      opacity: 0.2,
     });
 
     const plane = new THREE.Mesh(planeGeometry, material);
@@ -48,7 +48,7 @@ export function Background3D() {
     plane.position.y = -25;
     scene.add(plane);
 
-    // Add lights with increased intensity
+    // Add lights with increased intensity and palette colors
     const lightDistance = 500;
     
     const light1 = new THREE.PointLight(conf.light1Color, conf.lightIntensity * 1.5, lightDistance);
@@ -132,7 +132,7 @@ export function Background3D() {
   return (
     <div 
       ref={containerRef} 
-      className="fixed inset-0 -z-10 bg-[#F5F5F3]" // Light cream background
+      className="fixed inset-0 -z-10 bg-gradient-to-b from-[#F5F5F3] to-[#F9B054]/10"
     />
   );
 }
