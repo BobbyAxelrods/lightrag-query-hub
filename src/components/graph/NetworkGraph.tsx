@@ -24,6 +24,7 @@ export function NetworkGraph({
   useEffect(() => {
     if (!networkRef.current || !graphData) return;
 
+    // Cleanup previous network instance
     if (networkInstanceRef.current) {
       networkInstanceRef.current.destroy();
       networkInstanceRef.current = null;
@@ -34,12 +35,12 @@ export function NetworkGraph({
       label: node.label || 'Unknown',
       title: JSON.stringify(node.properties, null, 2),
       color: {
-        background: '#2563EB',
-        border: '#1E40AF',
-        highlight: { background: '#3B82F6', border: '#1E40AF' }
+        background: '#E38C40',
+        border: '#F9B054',
+        highlight: { background: '#F9B054', border: '#E38C40' }
       },
       font: { 
-        color: '#000000', 
+        color: '#4A4036', 
         size: showLabels ? 14 : 0 
       },
       shape: 'dot',
@@ -55,18 +56,18 @@ export function NetworkGraph({
           enabled: true,
           type: 'arrow',
           scaleFactor: 1.5,
-          color: '#64748B'
+          color: '#4A4036'
         }
       },
       color: { 
-        color: '#94A3B8', 
-        highlight: '#64748B',
+        color: '#E38C40', 
+        highlight: '#F9B054',
         opacity: 1.0
       },
       font: { 
         size: 12, 
         align: 'middle',
-        color: '#475569'
+        color: '#4A4036'
       },
       length: 250,
       width: 2,
@@ -82,13 +83,15 @@ export function NetworkGraph({
     const options = createNetworkOptions();
 
     try {
-      networkInstanceRef.current = new VisNetwork(
+      const network = new VisNetwork(
         networkRef.current,
         data,
         options
-      ) as NetworkInstance;
+      );
 
-      networkInstanceRef.current.on('click', function(params) {
+      networkInstanceRef.current = network;
+
+      network.on('click', function(params) {
         if (params.nodes.length > 0) {
           const nodeId = params.nodes[0];
           const node = graphData.nodes.find((n) => n.id === nodeId);
@@ -98,17 +101,15 @@ export function NetworkGraph({
         }
       });
 
-      networkInstanceRef.current.once('afterDrawing', function() {
-        if (networkInstanceRef.current) {
-          networkInstanceRef.current.fit();
-        }
+      network.once('afterDrawing', function() {
+        network.fit();
       });
 
       if (hideIsolatedNodes) {
         graphData.nodes.forEach((node) => {
-          const connectedEdges = networkInstanceRef.current?.getConnectedEdges(node.id) || [];
+          const connectedEdges = network.getConnectedEdges(node.id);
           if (connectedEdges.length === 0) {
-            networkInstanceRef.current?.body.data.nodes.update({
+            network.body.data.nodes.update({
               id: node.id,
               hidden: true,
             });
@@ -118,9 +119,17 @@ export function NetworkGraph({
     } catch (err) {
       console.error('Error initializing network:', err);
     }
+
+    // Cleanup function
+    return () => {
+      if (networkInstanceRef.current) {
+        networkInstanceRef.current.destroy();
+        networkInstanceRef.current = null;
+      }
+    };
   }, [graphData, showLabels, hideIsolatedNodes, onNodeSelect]);
 
   return (
-    <div ref={networkRef} className="w-full h-[600px] border border-gray-200 rounded-lg" />
+    <div ref={networkRef} className="w-full h-[600px] border border-[#E38C40]/20 rounded-lg bg-[#F5F5F3]/50" />
   );
 }
