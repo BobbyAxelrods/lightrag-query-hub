@@ -39,6 +39,8 @@ export function SimpleNetworkGraph({
         id: node.id,
         label: showLabels ? node.label : '',
         title: JSON.stringify(node.properties, null, 2),
+        fixed: true, // Reduce physics calculations
+        mass: 2, // Make nodes more stable
       }));
 
     const visData = {
@@ -47,18 +49,19 @@ export function SimpleNetworkGraph({
         from: edge.from,
         to: edge.to,
         label: showLabels ? edge.label : '',
+        smooth: false, // Disable curve calculations
       }))
     };
 
     const options = {
       nodes: {
         shape: 'dot',
-        size: 25,
+        size: 20, // Reduced size for better performance
         font: {
-          size: 14,
+          size: 12, // Smaller font size
           color: '#333333'
         },
-        borderWidth: 2,
+        borderWidth: 1, // Thinner borders
         color: {
           background: '#ffffff',
           border: '#E38C40',
@@ -70,17 +73,40 @@ export function SimpleNetworkGraph({
       },
       edges: {
         font: {
-          size: 12,
+          size: 10, // Smaller font size
           align: 'middle'
         },
         color: '#666666',
         arrows: {
-          to: { enabled: true, scaleFactor: 1 }
-        }
+          to: { enabled: true, scaleFactor: 0.5 } // Smaller arrows
+        },
+        smooth: false // Disable curved edges
       },
       physics: {
         enabled: true,
-        solver: 'forceAtlas2Based'
+        solver: 'forceAtlas2Based',
+        forceAtlas2Based: {
+          gravitationalConstant: -20,
+          centralGravity: 0.005,
+          springLength: 100,
+          springConstant: 0.05,
+          avoidOverlap: 0.2
+        },
+        stabilization: {
+          enabled: true,
+          iterations: 100, // Reduced iterations
+          updateInterval: 50,
+          fit: true
+        },
+        timestep: 0.5, // Reduced timestep for smoother rendering
+        adaptiveTimestep: true
+      },
+      interaction: {
+        hideEdgesOnDrag: true, // Hide edges while dragging
+        hideNodesOnDrag: false,
+        hover: true,
+        navigationButtons: false, // Disable navigation buttons
+        keyboard: false, // Disable keyboard navigation
       }
     };
 
@@ -90,6 +116,11 @@ export function SimpleNetworkGraph({
       if (params.nodes.length > 0) {
         onNodeClick(params.nodes[0]);
       }
+    });
+
+    // Once the network is stabilized, reduce physics calculations
+    networkRef.current.once('stabilized', function() {
+      networkRef.current?.setOptions({ physics: { enabled: false } });
     });
 
     return () => {
