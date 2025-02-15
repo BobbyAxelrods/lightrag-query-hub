@@ -1,9 +1,7 @@
 
 import { useEffect, useRef, useCallback } from "react";
 import { Network as VisNetwork } from "vis-network";
-import { GraphData } from "@/lib/api";
-import { createNetworkOptions } from "./networkUtils";
-import { NetworkInstance } from "./types";
+import { GraphData } from "./types";
 
 interface NetworkGraphProps {
   graphData: GraphData;
@@ -12,7 +10,7 @@ interface NetworkGraphProps {
 
 export function NetworkGraph({ graphData, onNodeSelect }: NetworkGraphProps) {
   const networkRef = useRef<HTMLDivElement>(null);
-  const networkInstanceRef = useRef<NetworkInstance | null>(null);
+  const networkRef2 = useRef<VisNetwork | null>(null);
 
   const initializeNetwork = useCallback(() => {
     if (!networkRef.current || !graphData) return;
@@ -45,14 +43,46 @@ export function NetworkGraph({ graphData, onNodeSelect }: NetworkGraphProps) {
     }));
 
     const data = { nodes: connectedNodes, edges };
-    const options = createNetworkOptions();
+    const options = {
+      nodes: {
+        shape: 'dot',
+        size: 25,
+        font: {
+          size: 14,
+          color: '#333333'
+        },
+        borderWidth: 2,
+        color: {
+          background: '#ffffff',
+          border: '#E38C40',
+          highlight: {
+            background: '#F9B054',
+            border: '#E38C40'
+          }
+        }
+      },
+      edges: {
+        font: {
+          size: 12,
+          align: 'middle'
+        },
+        color: '#666666',
+        arrows: {
+          to: { enabled: true, scaleFactor: 1 }
+        }
+      },
+      physics: {
+        enabled: true,
+        solver: 'forceAtlas2Based'
+      }
+    };
 
     try {
       const network = new VisNetwork(
         networkRef.current,
         data,
         options
-      ) as NetworkInstance;
+      );
 
       // Handle node click
       network.on('click', function(params) {
@@ -70,24 +100,24 @@ export function NetworkGraph({ graphData, onNodeSelect }: NetworkGraphProps) {
         network.fit();
       });
 
-      networkInstanceRef.current = network;
+      networkRef2.current = network;
     } catch (err) {
       console.error('Error initializing network:', err);
     }
   }, [graphData, onNodeSelect]);
 
   useEffect(() => {
-    if (networkInstanceRef.current) {
-      networkInstanceRef.current.destroy();
-      networkInstanceRef.current = null;
+    if (networkRef2.current) {
+      networkRef2.current.destroy();
+      networkRef2.current = null;
     }
 
     initializeNetwork();
 
     return () => {
-      if (networkInstanceRef.current) {
-        networkInstanceRef.current.destroy();
-        networkInstanceRef.current = null;
+      if (networkRef2.current) {
+        networkRef2.current.destroy();
+        networkRef2.current = null;
       }
     };
   }, [initializeNetwork]);
