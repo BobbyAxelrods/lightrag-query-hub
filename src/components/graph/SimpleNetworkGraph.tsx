@@ -50,7 +50,7 @@ export function SimpleNetworkGraph({
         id: node.id,
         label: showLabels ? node.label : '',
         title: JSON.stringify(node.properties, null, 2),
-        mass: 4, // Increased mass for slower movement
+        mass: 4,
         color: {
           background: '#ffffff',
           border: '#E38C40',
@@ -67,7 +67,7 @@ export function SimpleNetworkGraph({
         from: edge.from,
         to: edge.to,
         label: showLabels ? edge.label : '',
-        length: 250, // Increased edge length
+        length: 250,
         width: 1,
         color: {
           color: '#666666',
@@ -79,7 +79,7 @@ export function SimpleNetworkGraph({
     const options = {
       nodes: {
         shape: 'dot',
-        size: 24, // Increased node size
+        size: 35, // Increased node size significantly
         font: {
           size: 14,
           color: '#333333',
@@ -105,26 +105,26 @@ export function SimpleNetworkGraph({
           enabled: true,
           type: 'continuous',
           roundness: 0.5
-        },
-        width: 1
+        }
       },
       physics: {
         enabled: true,
         solver: 'forceAtlas2Based',
         forceAtlas2Based: {
-          gravitationalConstant: -30, // Reduced for slower movement
-          centralGravity: 0.005, // Reduced central gravity
-          springLength: 250, // Increased spring length
-          springConstant: 0.04, // Reduced spring constant for slower movement
-          damping: 0.8, // Increased damping for slower movement
+          gravitationalConstant: -30,
+          centralGravity: 0.005,
+          springLength: 250,
+          springConstant: 0.04,
+          damping: 0.8,
           avoidOverlap: 0.5
         },
         stabilization: {
           enabled: true,
           iterations: 100,
-          updateInterval: 50
+          updateInterval: 50,
+          fit: false // Disabled auto-fit during stabilization
         },
-        timestep: 0.3 // Reduced timestep for slower movement
+        timestep: 0.3
       },
       layout: {
         improvedLayout: true,
@@ -147,17 +147,18 @@ export function SimpleNetworkGraph({
     networkRef.current.on('click', function(params) {
       if (params.nodes.length > 0) {
         onNodeClick(params.nodes[0]);
+        // Removed any view modifications on click
       }
     });
 
-    // Remove auto-fit behavior, only set physics
+    // Set gentler physics after stabilization, but don't modify the view
     networkRef.current.once('stabilized', function() {
       networkRef.current?.setOptions({ 
         physics: {
           enabled: true,
           solver: 'forceAtlas2Based',
           forceAtlas2Based: {
-            gravitationalConstant: -20, // Even gentler physics after stabilization
+            gravitationalConstant: -20,
             centralGravity: 0.002,
             springLength: 250,
             springConstant: 0.02,
