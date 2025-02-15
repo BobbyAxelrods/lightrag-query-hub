@@ -1,35 +1,55 @@
 
-import { useEffect, useRef } from "react";
-import { Network } from "vis-network";
-import { GraphData } from "./types";
+import { useEffect, useRef } from 'react';
+import { Network } from 'vis-network';
+import { GraphData } from './types';
 
 interface SimpleNetworkGraphProps {
   data: GraphData;
-  onNodeClick?: (nodeId: string) => void;
+  onNodeClick: (nodeId: string) => void;
+  showLabels?: boolean;
+  hideIsolatedNodes?: boolean;
 }
 
-export function SimpleNetworkGraph({ data, onNodeClick }: SimpleNetworkGraphProps) {
+export function SimpleNetworkGraph({ 
+  data, 
+  onNodeClick, 
+  showLabels = true,
+  hideIsolatedNodes = false 
+}: SimpleNetworkGraphProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  
+  const networkRef = useRef<Network | null>(null);
+
   useEffect(() => {
     if (!containerRef.current || !data) return;
 
-    // Prepare the visualization data
-    const nodes = data.nodes.map(node => ({
-      id: node.id,
-      label: node.label,
-      title: Object.entries(node.properties)
-        .map(([key, value]) => `${key}: ${value}`)
-        .join('\n')
-    }));
+    // Create a map of nodes by ID for faster lookup
+    const nodesMap = new Map(data.nodes.map(node => [node.id, node]));
 
-    const edges = data.edges.map(edge => ({
-      from: edge.from,
-      to: edge.to,
-      label: edge.label
-    }));
+    // Find connected nodes
+    const connectedNodeIds = new Set();
+    data.edges.forEach(edge => {
+      connectedNodeIds.add(edge.from);
+      connectedNodeIds.add(edge.to);
+    });
 
-    // Configuration options
+    // Filter nodes based on hideIsolatedNodes prop
+    const filteredNodes = data.nodes
+      .filter(node => !hideIsolatedNodes || connectedNodeIds.has(node.id))
+      .map(node => ({
+        id: node.id,
+        label: showLabels ? node.label : '',
+        title: JSON.stringify(node.properties, null, 2),
+      }));
+
+    const visData = {
+      nodes: filteredNodes,
+      edges: data.edges.map(edge => ({
+        from: edge.from,
+        to: edge.to,
+        label: showLabels ? edge.label : '',
+      }))
+    };
+
     const options = {
       nodes: {
         shape: 'dot',
@@ -60,44 +80,30 @@ export function SimpleNetworkGraph({ data, onNodeClick }: SimpleNetworkGraphProp
       },
       physics: {
         enabled: true,
-        solver: 'forceAtlas2Based',
-        forceAtlas2Based: {
-          gravitationalConstant: -26,
-          springLength: 200,
-          springConstant: 0.18
-        },
-        stabilization: {
-          enabled: true,
-          iterations: 200
-        }
+        solver: 'forceAtlas2Based'
       }
     };
 
-    // Create network
-    const network = new Network(
-      containerRef.current,
-      { nodes, edges },
-      options
-    );
+    networkRef.current = new Network(containerRef.current, visData, options);
 
-    // Add click event handler
-    if (onNodeClick) {
-      network.on('click', (params) => {
-        if (params.nodes.length > 0) {
-          onNodeClick(params.nodes[0]);
-        }
-      });
-    }
+    networkRef.current.on('click', function(params) {
+      if (params.nodes.length > 0) {
+        onNodeClick(params.nodes[0]);
+      }
+    });
 
     return () => {
-      network.destroy();
+      if (networkRef.current) {
+        networkRef.current.destroy();
+        networkRef.current = null;
+      }
     };
-  }, [data, onNodeClick]);
+  }, [data, onNodeClick, showLabels, hideIsolatedNodes]);
 
   return (
     <div 
       ref={containerRef} 
-      className="w-full h-[500px] border border-gray-200 rounded-lg bg-white shadow-sm"
+      className="w-full h-[600px] border border-[#E38C40]/20 rounded-lg"
     />
   );
 }

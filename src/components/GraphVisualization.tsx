@@ -64,6 +64,8 @@ export function GraphVisualization() {
             <SimpleNetworkGraph 
               data={graphData}
               onNodeClick={handleNodeClick}
+              showLabels={showLabels}
+              hideIsolatedNodes={hideIsolatedNodes}
             />
           )}
         </div>
