@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getGraphAPI } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
@@ -16,19 +16,22 @@ export function GraphVisualization() {
     queryFn: getGraphAPI,
   });
 
-  if (error) {
-    toast({
-      title: "Error",
-      description: "Failed to load graph data",
-      variant: "destructive",
-    });
-    return null;
-  }
+  useEffect(() => {
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to load graph data",
+        variant: "destructive",
+      });
+    }
+  }, [error, toast]);
 
   const handleNodeSelect = (node: any) => {
     setSelectedNode(node);
     setIsDetailsOpen(true);
   };
+
+  if (error) return null;
 
   return (
     <div className="w-full max-w-4xl mx-auto mt-8">
