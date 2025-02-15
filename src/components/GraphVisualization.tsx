@@ -9,7 +9,7 @@ import { GraphControls } from "./graph/GraphControls";
 export function GraphVisualization() {
   const { toast } = useToast();
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
-  const [showGraph, setShowGraph] = useState(false);
+  const [showGraph, setShowGraph] = useState(true); // Changed to true to show graph by default
   const [showLabels, setShowLabels] = useState(true);
   const [hideIsolatedNodes, setHideIsolatedNodes] = useState(false);
 
