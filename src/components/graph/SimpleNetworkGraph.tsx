@@ -39,29 +39,7 @@ export function SimpleNetworkGraph({
         id: node.id,
         label: showLabels ? node.label : '',
         title: JSON.stringify(node.properties, null, 2),
-        fixed: true, // Reduce physics calculations
-        mass: 2, // Make nodes more stable
-      }));
-
-    const visData = {
-      nodes: filteredNodes,
-      edges: data.edges.map(edge => ({
-        from: edge.from,
-        to: edge.to,
-        label: showLabels ? edge.label : '',
-        smooth: false, // Disable curve calculations
-      }))
-    };
-
-    const options = {
-      nodes: {
-        shape: 'dot',
-        size: 20, // Reduced size for better performance
-        font: {
-          size: 12, // Smaller font size
-          color: '#333333'
-        },
-        borderWidth: 1, // Thinner borders
+        mass: 3, // Heavier nodes for more stability
         color: {
           background: '#ffffff',
           border: '#E38C40',
@@ -70,43 +48,86 @@ export function SimpleNetworkGraph({
             border: '#E38C40'
           }
         }
+      }));
+
+    const visData = {
+      nodes: filteredNodes,
+      edges: data.edges.map(edge => ({
+        from: edge.from,
+        to: edge.to,
+        label: showLabels ? edge.label : '',
+        length: 200, // Increase edge length for better spacing
+        width: 1, // Thinner edges
+        color: {
+          color: '#666666',
+          opacity: 0.5 // Make edges more transparent
+        }
+      }))
+    };
+
+    const options = {
+      nodes: {
+        shape: 'dot',
+        size: 16, // Smaller nodes
+        font: {
+          size: 14,
+          color: '#333333',
+          face: 'Inter'
+        },
+        borderWidth: 2,
+        shadow: {
+          enabled: true,
+          size: 5,
+          x: 2,
+          y: 2
+        }
       },
       edges: {
         font: {
-          size: 10, // Smaller font size
+          size: 12,
           align: 'middle'
         },
-        color: '#666666',
         arrows: {
-          to: { enabled: true, scaleFactor: 0.5 } // Smaller arrows
+          to: { enabled: true, scaleFactor: 0.5 }
         },
-        smooth: false // Disable curved edges
+        smooth: {
+          enabled: true,
+          type: 'continuous',
+          roundness: 0.5
+        },
+        width: 1
       },
       physics: {
         enabled: true,
         solver: 'forceAtlas2Based',
         forceAtlas2Based: {
-          gravitationalConstant: -20,
-          centralGravity: 0.005,
-          springLength: 100,
-          springConstant: 0.05,
-          avoidOverlap: 0.2
+          gravitationalConstant: -50, // Stronger repulsion
+          centralGravity: 0.01, // Less central pull
+          springLength: 200, // Longer springs
+          springConstant: 0.08, // Softer springs
+          damping: 0.4, // More damping
+          avoidOverlap: 0.5 // Stronger overlap avoidance
         },
         stabilization: {
           enabled: true,
-          iterations: 100, // Reduced iterations
-          updateInterval: 50,
+          iterations: 200,
+          updateInterval: 25,
           fit: true
-        },
-        timestep: 0.5, // Reduced timestep for smoother rendering
-        adaptiveTimestep: true
+        }
+      },
+      layout: {
+        improvedLayout: true,
+        hierarchical: false
       },
       interaction: {
-        hideEdgesOnDrag: true, // Hide edges while dragging
-        hideNodesOnDrag: false,
         hover: true,
-        navigationButtons: false, // Disable navigation buttons
-        keyboard: false, // Disable keyboard navigation
+        hideEdgesOnDrag: true,
+        navigationButtons: false,
+        keyboard: false,
+        multiselect: false,
+        dragNodes: true,
+        dragView: true,
+        zoomView: true
       }
     };
 
@@ -118,9 +139,20 @@ export function SimpleNetworkGraph({
       }
     });
 
-    // Once the network is stabilized, reduce physics calculations
+    // Stabilize and then adjust physics
     networkRef.current.once('stabilized', function() {
-      networkRef.current?.setOptions({ physics: { enabled: false } });
+      networkRef.current?.setOptions({ 
+        physics: {
+          enabled: true,
+          solver: 'forceAtlas2Based',
+          forceAtlas2Based: {
+            gravitationalConstant: -100,
+            centralGravity: 0.005,
+            springLength: 200,
+            springConstant: 0.04
+          }
+        }
+      });
     });
 
     return () => {
@@ -134,7 +166,7 @@ export function SimpleNetworkGraph({
   return (
     <div 
       ref={containerRef} 
-      className="w-full h-[600px] border border-[#E38C40]/20 rounded-lg"
+      className="w-full h-[600px] border border-[#E38C40]/20 rounded-lg bg-white"
     />
   );
 }
