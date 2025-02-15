@@ -27,10 +27,15 @@ export function NetworkGraph({
     // Create a map of nodes by ID for faster lookup
     const nodesMap = new Map(graphData.nodes.map(node => [node.id, node]));
 
+    // Process nodes with their properties
     const nodes = graphData.nodes.map((node) => ({
       id: node.id,
-      label: node.label || String(node.id),
-      title: JSON.stringify(node.properties, null, 2),
+      label: showLabels ? (node.label || String(node.id)) : '',
+      title: JSON.stringify({
+        id: node.id,
+        label: node.label,
+        ...node.properties
+      }, null, 2),
       color: {
         background: '#00F0FF',
         border: '#00FF81',
@@ -38,10 +43,13 @@ export function NetworkGraph({
       },
       font: { 
         color: '#FFA900', 
-        size: showLabels ? 14 : 0 
+        size: showLabels ? 14 : 0,
+        face: 'arial'
       },
       shape: 'dot',
-      size: 20
+      size: 20,
+      hidden: false, // Initially visible
+      value: Object.keys(node.properties || {}).length // Node size based on property count
     }));
 
     // Filter out edges that don't have valid source and target nodes
@@ -53,7 +61,7 @@ export function NetworkGraph({
       id: `${edge.from}-${edge.to}`,
       from: edge.from,
       to: edge.to,
-      label: edge.label || '',
+      label: showLabels ? (edge.label || '') : '',
       arrows: {
         to: {
           enabled: true,
@@ -70,7 +78,8 @@ export function NetworkGraph({
       font: { 
         size: 12, 
         align: 'middle',
-        color: '#FFA900'
+        color: '#FFA900',
+        face: 'arial'
       },
       length: 250,
       width: 2,
@@ -106,6 +115,7 @@ export function NetworkGraph({
         network.fit();
       });
 
+      // Handle isolated nodes visibility
       if (hideIsolatedNodes) {
         const connectedNodeIds = new Set();
         edges.forEach(edge => {
@@ -119,9 +129,40 @@ export function NetworkGraph({
               id: node.id,
               hidden: true,
             });
+          } else {
+            network.body.data.nodes.update({
+              id: node.id,
+              hidden: false,
+            });
           }
         });
+      } else {
+        // Show all nodes when hideIsolatedNodes is false
+        nodes.forEach(node => {
+          network.body.data.nodes.update({
+            id: node.id,
+            hidden: false,
+          });
+        });
       }
+
+      // Update label visibility when showLabels changes
+      nodes.forEach(node => {
+        network.body.data.nodes.update({
+          id: node.id,
+          label: showLabels ? (nodesMap.get(node.id)?.label || String(node.id)) : '',
+          font: { 
+            size: showLabels ? 14 : 0 
+          }
+        });
+      });
+
+      edges.forEach(edge => {
+        network.body.data.edges.update({
+          id: edge.id,
+          label: showLabels ? edge.label : ''
+        });
+      });
 
       networkInstanceRef.current = network;
     } catch (err) {
