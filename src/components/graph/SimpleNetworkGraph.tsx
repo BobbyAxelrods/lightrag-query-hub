@@ -2,6 +2,8 @@
 import { useEffect, useRef } from 'react';
 import { Network } from 'vis-network';
 import { GraphData } from './types';
+import { Button } from "@/components/ui/button";
+import { Maximize2 } from "lucide-react";
 
 interface SimpleNetworkGraphProps {
   data: GraphData;
@@ -13,11 +15,20 @@ interface SimpleNetworkGraphProps {
 export function SimpleNetworkGraph({ 
   data, 
   onNodeClick, 
-  showLabels = true,
-  hideIsolatedNodes = false 
+  showLabels = false,
+  hideIsolatedNodes = true
 }: SimpleNetworkGraphProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const networkRef = useRef<Network | null>(null);
+
+  const handleResetView = () => {
+    networkRef.current?.fit({
+      animation: {
+        duration: 1000,
+        easingFunction: 'easeInOutQuad'
+      }
+    });
+  };
 
   useEffect(() => {
     if (!containerRef.current || !data) return;
@@ -68,7 +79,7 @@ export function SimpleNetworkGraph({
     const options = {
       nodes: {
         shape: 'dot',
-        size: 16, // Smaller nodes
+        size: 16,
         font: {
           size: 14,
           color: '#333333',
@@ -101,12 +112,12 @@ export function SimpleNetworkGraph({
         enabled: true,
         solver: 'forceAtlas2Based',
         forceAtlas2Based: {
-          gravitationalConstant: -50, // Stronger repulsion
-          centralGravity: 0.01, // Less central pull
-          springLength: 200, // Longer springs
-          springConstant: 0.08, // Softer springs
-          damping: 0.4, // More damping
-          avoidOverlap: 0.5 // Stronger overlap avoidance
+          gravitationalConstant: -50,
+          centralGravity: 0.01,
+          springLength: 200,
+          springConstant: 0.08,
+          damping: 0.4,
+          avoidOverlap: 0.5
         },
         stabilization: {
           enabled: true,
@@ -139,7 +150,7 @@ export function SimpleNetworkGraph({
       }
     });
 
-    // Stabilize and then adjust physics
+    // Initial stabilization without auto-fit
     networkRef.current.once('stabilized', function() {
       networkRef.current?.setOptions({ 
         physics: {
@@ -164,9 +175,20 @@ export function SimpleNetworkGraph({
   }, [data, onNodeClick, showLabels, hideIsolatedNodes]);
 
   return (
-    <div 
-      ref={containerRef} 
-      className="w-full h-[600px] border border-[#E38C40]/20 rounded-lg bg-white"
-    />
+    <div className="relative">
+      <Button
+        onClick={handleResetView}
+        className="absolute top-4 right-4 z-10 bg-white/80 hover:bg-white shadow-lg"
+        variant="outline"
+        size="sm"
+      >
+        <Maximize2 className="h-4 w-4 mr-2" />
+        Reset View
+      </Button>
+      <div 
+        ref={containerRef} 
+        className="w-full h-[600px] border border-[#E38C40]/20 rounded-lg bg-white"
+      />
+    </div>
   );
 }

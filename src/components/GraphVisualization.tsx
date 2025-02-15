@@ -9,9 +9,9 @@ import { GraphControls } from "./graph/GraphControls";
 export function GraphVisualization() {
   const { toast } = useToast();
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
-  const [showGraph, setShowGraph] = useState(true); // Changed to true to show graph by default
-  const [showLabels, setShowLabels] = useState(true);
-  const [hideIsolatedNodes, setHideIsolatedNodes] = useState(false);
+  const [showGraph, setShowGraph] = useState(true);
+  const [showLabels, setShowLabels] = useState(false); // Changed default to false
+  const [hideIsolatedNodes, setHideIsolatedNodes] = useState(true); // Changed default to true
 
   const { data: graphData, isLoading, error } = useQuery({
     queryKey: ["graph"],
