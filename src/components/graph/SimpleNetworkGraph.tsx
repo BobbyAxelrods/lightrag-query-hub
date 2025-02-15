@@ -81,7 +81,7 @@ export function SimpleNetworkGraph({
           enabled: true,
           iterations: 100,
           updateInterval: 50,
-          fit: false
+          fit: true // Enable initial fit
         },
         timestep: 0.3
       },
@@ -97,7 +97,9 @@ export function SimpleNetworkGraph({
         multiselect: false,
         dragNodes: true,
         dragView: true,
-        zoomView: true
+        zoomView: true,
+        minZoom: 0.1, // Allow more zoom out
+        maxZoom: 2    // Limit zoom in
       }
     };
 
@@ -122,6 +124,14 @@ export function SimpleNetworkGraph({
             damping: 0.9
           },
           timestep: 0.2
+        }
+      });
+      // Zoom out slightly after stabilization
+      networkRef.current?.moveTo({
+        scale: 0.5,
+        animation: {
+          duration: 1000,
+          easingFunction: 'easeOutCubic'
         }
       });
     });
