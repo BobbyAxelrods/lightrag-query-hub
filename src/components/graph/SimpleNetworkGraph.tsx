@@ -20,6 +20,7 @@ export function SimpleNetworkGraph({
 }: SimpleNetworkGraphProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const networkRef = useRef<Network | null>(null);
+  const isInitializedRef = useRef(false);
 
   const handleResetView = () => {
     networkRef.current?.fit({
@@ -30,56 +31,14 @@ export function SimpleNetworkGraph({
     });
   };
 
+  // Initialize network only once
   useEffect(() => {
-    if (!containerRef.current || !data) return;
-
-    // Create a map of nodes by ID for faster lookup
-    const nodesMap = new Map(data.nodes.map(node => [node.id, node]));
-
-    // Find connected nodes
-    const connectedNodeIds = new Set();
-    data.edges.forEach(edge => {
-      connectedNodeIds.add(edge.from);
-      connectedNodeIds.add(edge.to);
-    });
-
-    // Filter nodes based on hideIsolatedNodes prop
-    const filteredNodes = data.nodes
-      .filter(node => !hideIsolatedNodes || connectedNodeIds.has(node.id))
-      .map(node => ({
-        id: node.id,
-        label: showLabels ? node.label : '',
-        title: JSON.stringify(node.properties, null, 2),
-        mass: 4,
-        color: {
-          background: '#ffffff',
-          border: '#E38C40',
-          highlight: {
-            background: '#F9B054',
-            border: '#E38C40'
-          }
-        }
-      }));
-
-    const visData = {
-      nodes: filteredNodes,
-      edges: data.edges.map(edge => ({
-        from: edge.from,
-        to: edge.to,
-        label: showLabels ? edge.label : '',
-        length: 250,
-        width: 1,
-        color: {
-          color: '#666666',
-          opacity: 0.5
-        }
-      }))
-    };
+    if (!containerRef.current || !data || isInitializedRef.current) return;
 
     const options = {
       nodes: {
         shape: 'dot',
-        size: 35, // Increased node size significantly
+        size: 35,
         font: {
           size: 14,
           color: '#333333',
@@ -122,7 +81,7 @@ export function SimpleNetworkGraph({
           enabled: true,
           iterations: 100,
           updateInterval: 50,
-          fit: false // Disabled auto-fit during stabilization
+          fit: false
         },
         timestep: 0.3
       },
@@ -142,16 +101,14 @@ export function SimpleNetworkGraph({
       }
     };
 
-    networkRef.current = new Network(containerRef.current, visData, options);
+    networkRef.current = new Network(containerRef.current, {nodes: [], edges: []}, options);
 
     networkRef.current.on('click', function(params) {
       if (params.nodes.length > 0) {
         onNodeClick(params.nodes[0]);
-        // Removed any view modifications on click
       }
     });
 
-    // Set gentler physics after stabilization, but don't modify the view
     networkRef.current.once('stabilized', function() {
       networkRef.current?.setOptions({ 
         physics: {
@@ -169,13 +126,61 @@ export function SimpleNetworkGraph({
       });
     });
 
+    isInitializedRef.current = true;
+
     return () => {
       if (networkRef.current) {
         networkRef.current.destroy();
         networkRef.current = null;
+        isInitializedRef.current = false;
       }
     };
-  }, [data, onNodeClick, showLabels, hideIsolatedNodes]);
+  }, []);
+
+  // Update data separately
+  useEffect(() => {
+    if (!networkRef.current || !data) return;
+
+    const connectedNodeIds = new Set();
+    data.edges.forEach(edge => {
+      connectedNodeIds.add(edge.from);
+      connectedNodeIds.add(edge.to);
+    });
+
+    const filteredNodes = data.nodes
+      .filter(node => !hideIsolatedNodes || connectedNodeIds.has(node.id))
+      .map(node => ({
+        id: node.id,
+        label: showLabels ? node.label : '',
+        title: JSON.stringify(node.properties, null, 2),
+        mass: 4,
+        color: {
+          background: '#ffffff',
+          border: '#E38C40',
+          highlight: {
+            background: '#F9B054',
+            border: '#E38C40'
+          }
+        }
+      }));
+
+    const visData = {
+      nodes: filteredNodes,
+      edges: data.edges.map(edge => ({
+        from: edge.from,
+        to: edge.to,
+        label: showLabels ? edge.label : '',
+        length: 250,
+        width: 1,
+        color: {
+          color: '#666666',
+          opacity: 0.5
+        }
+      }))
+    };
+
+    networkRef.current.setData(visData);
+  }, [data, showLabels, hideIsolatedNodes]);
 
   return (
     <div className="relative">
