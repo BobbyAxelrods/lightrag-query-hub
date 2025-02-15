@@ -7,17 +7,10 @@ import { NetworkInstance } from "./types";
 
 interface NetworkGraphProps {
   graphData: GraphData;
-  showLabels: boolean;
-  hideIsolatedNodes: boolean;
   onNodeSelect: (node: any) => void;
 }
 
-export function NetworkGraph({
-  graphData,
-  showLabels,
-  hideIsolatedNodes,
-  onNodeSelect,
-}: NetworkGraphProps) {
+export function NetworkGraph({ graphData, onNodeSelect }: NetworkGraphProps) {
   const networkRef = useRef<HTMLDivElement>(null);
   const networkInstanceRef = useRef<NetworkInstance | null>(null);
 
@@ -27,71 +20,31 @@ export function NetworkGraph({
     // Create a map of nodes by ID for faster lookup
     const nodesMap = new Map(graphData.nodes.map(node => [node.id, node]));
 
-    // Process nodes with their properties
-    const nodes = graphData.nodes.map((node) => ({
-      id: node.id,
-      label: showLabels ? (node.label || String(node.id)) : '',
-      title: JSON.stringify({
+    // Find connected nodes
+    const connectedNodeIds = new Set();
+    graphData.edges.forEach(edge => {
+      connectedNodeIds.add(edge.from);
+      connectedNodeIds.add(edge.to);
+    });
+
+    // Only include nodes that have connections
+    const connectedNodes = graphData.nodes
+      .filter(node => connectedNodeIds.has(node.id))
+      .map(node => ({
         id: node.id,
         label: node.label,
-        ...node.properties
-      }, null, 2),
-      color: {
-        background: '#00F0FF',
-        border: '#00FF81',
-        highlight: { background: '#00FF81', border: '#00F0FF' }
-      },
-      font: { 
-        color: '#FFA900', 
-        size: showLabels ? 14 : 0,
-        face: 'arial'
-      },
-      shape: 'dot',
-      size: 20,
-      hidden: false, // Initially visible
-      value: Object.keys(node.properties || {}).length // Node size based on property count
-    }));
+        title: JSON.stringify(node.properties, null, 2),
+      }));
 
-    // Filter out edges that don't have valid source and target nodes
-    const validEdges = graphData.edges.filter(edge => 
-      nodesMap.has(edge.from) && nodesMap.has(edge.to)
-    );
-
-    const edges = validEdges.map((edge) => ({
+    // Create edges for connected nodes
+    const edges = graphData.edges.map(edge => ({
       id: `${edge.from}-${edge.to}`,
       from: edge.from,
       to: edge.to,
-      label: showLabels ? (edge.label || '') : '',
-      arrows: {
-        to: {
-          enabled: true,
-          type: 'arrow',
-          scaleFactor: 1.5,
-          color: '#FF6800'
-        }
-      },
-      color: { 
-        color: '#00F0FF', 
-        highlight: '#00FF81',
-        opacity: 0.8
-      },
-      font: { 
-        size: 12, 
-        align: 'middle',
-        color: '#FFA900',
-        face: 'arial'
-      },
-      length: 250,
-      width: 2,
-      smooth: {
-        enabled: true,
-        type: 'continuous',
-        roundness: 0.5,
-        forceDirection: 'none'
-      }
+      label: edge.label
     }));
 
-    const data = { nodes, edges };
+    const data = { nodes: connectedNodes, edges };
     const options = createNetworkOptions();
 
     try {
@@ -101,6 +54,7 @@ export function NetworkGraph({
         options
       ) as NetworkInstance;
 
+      // Handle node click
       network.on('click', function(params) {
         if (params.nodes.length > 0) {
           const nodeId = params.nodes[0];
@@ -111,67 +65,18 @@ export function NetworkGraph({
         }
       });
 
-      network.once('afterDrawing', function() {
+      // Fit the network to the container
+      network.once('stabilized', function() {
         network.fit();
-      });
-
-      // Handle isolated nodes visibility
-      if (hideIsolatedNodes) {
-        const connectedNodeIds = new Set();
-        edges.forEach(edge => {
-          connectedNodeIds.add(edge.from);
-          connectedNodeIds.add(edge.to);
-        });
-
-        nodes.forEach(node => {
-          if (!connectedNodeIds.has(node.id)) {
-            network.body.data.nodes.update({
-              id: node.id,
-              hidden: true,
-            });
-          } else {
-            network.body.data.nodes.update({
-              id: node.id,
-              hidden: false,
-            });
-          }
-        });
-      } else {
-        // Show all nodes when hideIsolatedNodes is false
-        nodes.forEach(node => {
-          network.body.data.nodes.update({
-            id: node.id,
-            hidden: false,
-          });
-        });
-      }
-
-      // Update label visibility when showLabels changes
-      nodes.forEach(node => {
-        network.body.data.nodes.update({
-          id: node.id,
-          label: showLabels ? (nodesMap.get(node.id)?.label || String(node.id)) : '',
-          font: { 
-            size: showLabels ? 14 : 0 
-          }
-        });
-      });
-
-      edges.forEach(edge => {
-        network.body.data.edges.update({
-          id: edge.id,
-          label: showLabels ? edge.label : ''
-        });
       });
 
       networkInstanceRef.current = network;
     } catch (err) {
       console.error('Error initializing network:', err);
     }
-  }, [graphData, showLabels, hideIsolatedNodes, onNodeSelect]);
+  }, [graphData, onNodeSelect]);
 
   useEffect(() => {
-    // Cleanup previous network instance
     if (networkInstanceRef.current) {
       networkInstanceRef.current.destroy();
       networkInstanceRef.current = null;
@@ -188,6 +93,9 @@ export function NetworkGraph({
   }, [initializeNetwork]);
 
   return (
-    <div ref={networkRef} className="w-full h-[600px] border border-[#00FF81]/20 rounded-lg bg-gradient-to-br from-[#00F0FF]/5 to-[#FFA900]/5 backdrop-blur-sm" />
+    <div 
+      ref={networkRef} 
+      className="w-full h-[600px] border border-[#E38C40]/20 rounded-lg bg-white/90 shadow-lg" 
+    />
   );
 }
