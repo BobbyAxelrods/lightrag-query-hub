@@ -19,6 +19,7 @@ interface Message {
   response: string;
   timestamp: Date;
   streaming?: boolean;
+  lines?: string[];
 }
 
 const Index = () => {
@@ -27,7 +28,6 @@ const Index = () => {
   const [currentGraphData, setCurrentGraphData] = useState<GraphData | null>(null);
   const { toast } = useToast();
 
-  // Fetch initial graph data when component mounts
   useEffect(() => {
     fetchGraphData();
   }, []);
@@ -51,9 +51,16 @@ const Index = () => {
     setMessages(prev => {
       const lastMessage = prev[prev.length - 1];
       if (lastMessage && lastMessage.streaming) {
+        // Split the response into lines and filter out empty lines
+        const lines = partialResponse.split('\n').filter(line => line.trim());
+        
         return [
           ...prev.slice(0, -1),
-          { ...lastMessage, response: partialResponse }
+          { 
+            ...lastMessage, 
+            response: partialResponse,
+            lines: lines
+          }
         ];
       }
       return prev;
@@ -66,7 +73,8 @@ const Index = () => {
       query,
       response: "",
       timestamp: new Date(),
-      streaming: true
+      streaming: true,
+      lines: []
     };
 
     setMessages(prev => [...prev, newMessage]);
@@ -75,12 +83,19 @@ const Index = () => {
       setMessages(prev => {
         const last = prev[prev.length - 1];
         if (last.id === newMessage.id) {
-          return [...prev.slice(0, -1), { ...last, response, streaming: false }];
+          // Split final response into lines
+          const lines = response.split('\n').filter(line => line.trim());
+          return [...prev.slice(0, -1), { 
+            ...last, 
+            response, 
+            streaming: false,
+            lines
+          }];
         }
         return prev;
       });
 
-      // Fetch updated graph data after query
+      // Fetch updated graph data after response is complete
       await fetchGraphData();
       
       toast({
@@ -139,9 +154,13 @@ const Index = () => {
                         <div className="flex flex-col max-w-3xl">
                           <div className="bg-white rounded-lg p-4 shadow-sm">
                             <p className="text-sm font-medium mb-2">Response</p>
-                            <ReactMarkdown className="prose prose-sm max-w-none text-[#4A4036]">
-                              {message.response}
-                            </ReactMarkdown>
+                            <div className="prose prose-sm max-w-none text-[#4A4036] space-y-2">
+                              {message.lines?.map((line, index) => (
+                                <div key={index} className="animate-fade-in">
+                                  <ReactMarkdown>{line}</ReactMarkdown>
+                                </div>
+                              ))}
+                            </div>
                           </div>
                         </div>
                       </div>
