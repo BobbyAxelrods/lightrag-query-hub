@@ -66,7 +66,7 @@ export const queryAPI = async (params: QueryRequest, onChunk?: (chunk: string) =
       if (!reader) throw new Error("No reader available");
 
       const decoder = new TextDecoder();
-      let accumulatedResponse = "";
+      let buffer = "";
       
       while (true) {
         const { done, value } = await reader.read();
@@ -76,10 +76,22 @@ export const queryAPI = async (params: QueryRequest, onChunk?: (chunk: string) =
         }
         
         const chunk = decoder.decode(value);
-        accumulatedResponse += chunk;
-        if (onChunk) {
-          onChunk(accumulatedResponse);
+        buffer += chunk;
+
+        // Split on newlines but keep partial lines in buffer
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || ''; // Keep last partial line in buffer
+
+        // Process complete lines
+        const completedLines = lines.filter(line => line.trim());
+        if (completedLines.length > 0 && onChunk) {
+          onChunk(completedLines.join('\n'));
         }
+      }
+
+      // Process any remaining content
+      if (buffer.trim() && onChunk) {
+        onChunk(buffer);
       }
     } else {
       const data = await response.json();

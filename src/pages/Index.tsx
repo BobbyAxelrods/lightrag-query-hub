@@ -59,12 +59,15 @@ const Index = () => {
       const lastMessage = prev[prev.length - 1];
       if (lastMessage && lastMessage.streaming) {
         const lines = partialResponse.split('\n').filter(line => line.trim());
+        
+        const uniqueLines = Array.from(new Set(lines));
+        
         return [
           ...prev.slice(0, -1),
           { 
             ...lastMessage, 
             response: partialResponse,
-            lines: lines
+            lines: uniqueLines
           }
         ];
       }
@@ -89,11 +92,12 @@ const Index = () => {
         const last = prev[prev.length - 1];
         if (last.id === newMessage.id) {
           const lines = response.split('\n').filter(line => line.trim());
+          const uniqueLines = Array.from(new Set(lines));
           return [...prev.slice(0, -1), { 
             ...last, 
             response, 
             streaming: false,
-            lines
+            lines: uniqueLines
           }];
         }
         return prev;
