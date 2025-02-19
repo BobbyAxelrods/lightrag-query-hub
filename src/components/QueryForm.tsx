@@ -1,3 +1,4 @@
+
 import { useState, useRef, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -13,6 +14,7 @@ import {
 import { queryAPI } from "@/lib/api";
 import { Loader2, Clock, Zap } from "lucide-react";
 import ReactMarkdown from 'react-markdown';
+import { cn } from "@/lib/utils";
 
 interface QueryFormProps {
   onQueryComplete?: (query: string, response: string) => void;
