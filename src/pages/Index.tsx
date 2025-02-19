@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Navigation } from "@/components/Navigation";
 import { QueryForm } from "@/components/QueryForm";
@@ -16,94 +17,7 @@ interface Message {
   timestamp: Date;
 }
 
-// Test cases for different types of queries and expected graph structures
 const generateGraphData = (query: string, response: string, messageId: string): GraphData => {
-  console.log("Generating graph data for query:", query);
-
-  // Test Case 1: Knowledge Query
-  if (query.toLowerCase().includes("what") || query.toLowerCase().includes("how")) {
-    const graphData = {
-      nodes: [
-        {
-          id: `concept-${messageId}`,
-          label: "Concept",
-          properties: {
-            content: query,
-            type: "knowledge_query",
-            timestamp: new Date().toISOString()
-          }
-        },
-        {
-          id: `explanation-${messageId}`,
-          label: "Explanation",
-          properties: {
-            content: response,
-            type: "knowledge_response",
-            timestamp: new Date().toISOString()
-          }
-        }
-      ],
-      edges: [
-        {
-          from: `concept-${messageId}`,
-          to: `explanation-${messageId}`,
-          label: "EXPLAINS"
-        }
-      ]
-    };
-    console.log("Generated knowledge graph:", graphData);
-    return graphData;
-  }
-
-  // Test Case 2: Action Query
-  if (query.toLowerCase().includes("can you") || query.toLowerCase().includes("please")) {
-    const graphData = {
-      nodes: [
-        {
-          id: `request-${messageId}`,
-          label: "Request",
-          properties: {
-            content: query,
-            type: "action_request",
-            timestamp: new Date().toISOString()
-          }
-        },
-        {
-          id: `action-${messageId}`,
-          label: "Action",
-          properties: {
-            content: response,
-            type: "action_response",
-            timestamp: new Date().toISOString()
-          }
-        },
-        {
-          id: `status-${messageId}`,
-          label: "Status",
-          properties: {
-            content: "Completed",
-            type: "action_status",
-            timestamp: new Date().toISOString()
-          }
-        }
-      ],
-      edges: [
-        {
-          from: `request-${messageId}`,
-          to: `action-${messageId}`,
-          label: "TRIGGERS"
-        },
-        {
-          from: `action-${messageId}`,
-          to: `status-${messageId}`,
-          label: "RESULTS_IN"
-        }
-      ]
-    };
-    console.log("Generated action graph:", graphData);
-    return graphData;
-  }
-
   return {
     nodes: [
       {
@@ -111,7 +25,7 @@ const generateGraphData = (query: string, response: string, messageId: string): 
         label: "Input",
         properties: {
           content: query,
-          type: "default_query",
+          type: "query",
           timestamp: new Date().toISOString()
         }
       },
@@ -120,7 +34,7 @@ const generateGraphData = (query: string, response: string, messageId: string): 
         label: "Output",
         properties: {
           content: response,
-          type: "default_response",
+          type: "response",
           timestamp: new Date().toISOString()
         }
       }
@@ -129,7 +43,7 @@ const generateGraphData = (query: string, response: string, messageId: string): 
       {
         from: `input-${messageId}`,
         to: `output-${messageId}`,
-        label: "PROCESSES"
+        label: "GENERATES"
       }
     ]
   };
