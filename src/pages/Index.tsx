@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Navigation } from "@/components/Navigation";
 import { QueryForm } from "@/components/QueryForm";
@@ -7,7 +6,7 @@ import { Background3D } from "@/components/Background3D";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, RefreshCw } from "lucide-react";
 import { GraphData } from "@/components/graph/types";
 import { getGraphDataFromQuery } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
@@ -26,6 +25,7 @@ const Index = () => {
   const [showGraph, setShowGraph] = useState(true);
   const [messages, setMessages] = useState<Message[]>([]);
   const [currentGraphData, setCurrentGraphData] = useState<GraphData | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -34,9 +34,14 @@ const Index = () => {
 
   const fetchGraphData = async () => {
     try {
+      setIsRefreshing(true);
       const graphData = await getGraphDataFromQuery();
       console.log("Fetched graph data:", graphData);
       setCurrentGraphData(graphData);
+      toast({
+        title: "Success",
+        description: "Graph visualization updated",
+      });
     } catch (error) {
       console.error("Error loading graph data:", error);
       toast({
@@ -44,6 +49,8 @@ const Index = () => {
         description: "Failed to load graph visualization",
         variant: "destructive",
       });
+    } finally {
+      setIsRefreshing(false);
     }
   };
 
@@ -51,9 +58,7 @@ const Index = () => {
     setMessages(prev => {
       const lastMessage = prev[prev.length - 1];
       if (lastMessage && lastMessage.streaming) {
-        // Split the response into lines and filter out empty lines
         const lines = partialResponse.split('\n').filter(line => line.trim());
-        
         return [
           ...prev.slice(0, -1),
           { 
@@ -83,7 +88,6 @@ const Index = () => {
       setMessages(prev => {
         const last = prev[prev.length - 1];
         if (last.id === newMessage.id) {
-          // Split final response into lines
           const lines = response.split('\n').filter(line => line.trim());
           return [...prev.slice(0, -1), { 
             ...last, 
@@ -94,19 +98,11 @@ const Index = () => {
         }
         return prev;
       });
-
-      // Fetch updated graph data after response is complete
-      await fetchGraphData();
-      
-      toast({
-        title: "Success",
-        description: "Graph visualization updated",
-      });
     } catch (error) {
-      console.error("Error loading graph data:", error);
+      console.error("Error:", error);
       toast({
         title: "Error",
-        description: "Failed to load graph visualization",
+        description: "Failed to process response",
         variant: "destructive",
       });
     }
@@ -184,6 +180,22 @@ const Index = () => {
               !showGraph && "translate-x-full"
             )}>
               <div className="h-full p-4">
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-lg font-medium">Graph Visualization</h2>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={fetchGraphData}
+                    disabled={isRefreshing}
+                    className="border-[#E38C40]/20 text-[#E38C40] hover:bg-[#E38C40]/10"
+                  >
+                    <RefreshCw className={cn(
+                      "h-4 w-4 mr-2",
+                      isRefreshing && "animate-spin"
+                    )} />
+                    {isRefreshing ? "Refreshing..." : "Refresh Graph"}
+                  </Button>
+                </div>
                 {currentGraphData && currentGraphData.nodes && currentGraphData.nodes.length > 0 && (
                   <GraphVisualization graphData={currentGraphData} />
                 )}
