@@ -65,7 +65,9 @@ export function SimpleNetworkGraph({
         color: { color: '#666666', opacity: 0.8 },
         smooth: {
           enabled: true,
-          type: 'continuous'
+          type: 'continuous',
+          roundness: 0.5,
+          forceDirection: 'none'
         }
       },
       physics: {
@@ -153,7 +155,9 @@ export function SimpleNetworkGraph({
       },
       smooth: {
         enabled: true,
-        type: 'continuous'
+        type: 'continuous',
+        roundness: 0.5,
+        forceDirection: 'none'
       }
     }));
 
