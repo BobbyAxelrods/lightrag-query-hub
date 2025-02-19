@@ -66,23 +66,18 @@ export const queryAPI = async (params: QueryRequest, onChunk?: (chunk: string) =
       if (!reader) throw new Error("No reader available");
 
       const decoder = new TextDecoder();
-      let currentResponse = "";
+      let accumulatedText = "";
       
       while (true) {
         const { done, value } = await reader.read();
         
-        if (done) {
-          if (currentResponse.trim() && onChunk) {
-            onChunk(currentResponse);
-          }
-          break;
-        }
+        if (done) break;
         
         const newText = decoder.decode(value);
-        currentResponse += newText;
+        accumulatedText = newText; // Don't accumulate, just use latest chunk
 
-        if (onChunk) {
-          onChunk(currentResponse);
+        if (onChunk && accumulatedText.trim()) {
+          onChunk(accumulatedText);
         }
       }
     } else {
@@ -192,33 +187,44 @@ export const getGraphDataFromQuery = async (): Promise<GraphData> => {
   try {
     const response = await api.get("/graph_context");
     const data = response.data;
-    console.log("Raw graph data:", data);
-    
-    // Transform nodes first
-    const nodes = data.nodes.map((node: LocalGraphNode) => ({
-      id: node.id,
-      label: node.entity.replace(/"/g, ''),
-      properties: {
-        type: node.type.replace(/"/g, ''),
-        description: node.description.replace(/"/g, ''),
-        rank: parseFloat(node.rank) || 1,
-        content: node.description.replace(/"/g, '')
-      }
-    }));
+    console.log("Raw graph data received:", data);
 
-    // Transform edges and ensure proper source/target mapping
+    if (!data.nodes || !data.edges) {
+      console.error("Invalid graph data structure:", data);
+      throw new Error("Invalid graph data structure");
+    }
+
+    // Transform nodes first
+    const nodes = data.nodes.map((node: LocalGraphNode) => {
+      console.log("Processing node:", node);
+      return {
+        id: node.id,
+        label: node.entity?.replace(/"/g, '') || 'Unnamed Node',
+        properties: {
+          type: node.type?.replace(/"/g, '') || 'unknown',
+          description: node.description?.replace(/"/g, '') || '',
+          rank: parseFloat(node.rank) || 1,
+          content: node.description?.replace(/"/g, '') || ''
+        }
+      };
+    });
+
+    // Transform edges with proper relationship mapping
     const edges = data.edges.map((edge: LocalGraphEdge) => {
-      // Log edge data for debugging
-      console.log("Processing edge:", {
-        source: edge.source,
-        target: edge.target,
-        description: edge.description
-      });
+      console.log("Processing edge:", edge);
+      // Ensure source and target exist in nodes
+      const sourceExists = nodes.some(node => node.id === edge.source);
+      const targetExists = nodes.some(node => node.id === edge.target);
+      
+      if (!sourceExists || !targetExists) {
+        console.warn(`Edge skipped - missing nodes: source=${edge.source}, target=${edge.target}`);
+        return null;
+      }
 
       return {
         from: edge.source,
         to: edge.target,
-        label: edge.description.replace(/"/g, ''),
+        label: edge.description?.replace(/"/g, '') || '',
         properties: {
           weight: parseFloat(edge.weight) || 1,
           rank: parseFloat(edge.rank) || 1,
@@ -226,10 +232,10 @@ export const getGraphDataFromQuery = async (): Promise<GraphData> => {
           created_at: edge.created_at
         }
       };
-    });
+    }).filter(edge => edge !== null);
 
     const graphData = { nodes, edges };
-    console.log("Processed graph data:", graphData);
+    console.log("Final processed graph data:", graphData);
     return graphData;
   } catch (error) {
     console.error("Failed to fetch graph data:", error);

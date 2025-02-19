@@ -58,16 +58,12 @@ const Index = () => {
     setMessages(prev => {
       const lastMessage = prev[prev.length - 1];
       if (lastMessage && lastMessage.streaming) {
-        const lines = partialResponse.split('\n').filter(line => line.trim());
-        
-        const uniqueLines = Array.from(new Set(lines));
-        
         return [
           ...prev.slice(0, -1),
           { 
             ...lastMessage, 
             response: partialResponse,
-            lines: uniqueLines
+            lines: [partialResponse.trim()]
           }
         ];
       }
