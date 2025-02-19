@@ -6,7 +6,8 @@ import { Background3D } from "@/components/Background3D";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, MessageCircle, Plus, Settings } from "lucide-react";
+import { ChevronLeft, ChevronRight, MessageCircle, Plus } from "lucide-react";
+import { GraphData } from "@/components/graph/types";
 
 interface Message {
   id: string;
@@ -63,59 +64,80 @@ const testSessions: Session[] = [
   }
 ];
 
+const createGraphDataFromSession = (session: Session): GraphData => {
+  const nodes = [];
+  const edges = [];
+  
+  if (session.messages.length > 0) {
+    const uniqueNodes = new Set();
+    
+    session.messages.forEach((message, index) => {
+      // Create query node
+      const queryNodeId = `q${index}`;
+      if (!uniqueNodes.has(queryNodeId)) {
+        nodes.push({
+          id: queryNodeId,
+          label: `Query ${index + 1}`,
+          properties: {
+            content: message.query,
+            timestamp: message.timestamp.toISOString()
+          }
+        });
+        uniqueNodes.add(queryNodeId);
+      }
+
+      // Create response node
+      const responseNodeId = `r${index}`;
+      if (!uniqueNodes.has(responseNodeId)) {
+        nodes.push({
+          id: responseNodeId,
+          label: `Response ${index + 1}`,
+          properties: {
+            content: message.response,
+            timestamp: message.timestamp.toISOString()
+          }
+        });
+        uniqueNodes.add(responseNodeId);
+      }
+
+      // Create edge between query and response
+      edges.push({
+        from: queryNodeId,
+        to: responseNodeId,
+        label: "GENERATES"
+      });
+
+      // Connect consecutive messages
+      if (index > 0) {
+        edges.push({
+          from: `r${index - 1}`,
+          to: queryNodeId,
+          label: "LEADS_TO"
+        });
+      }
+    });
+  }
+
+  return { nodes, edges };
+};
+
 const Index = () => {
   const [showSidebar, setShowSidebar] = useState(true);
   const [showGraph, setShowGraph] = useState(true);
   const [sessions, setSessions] = useState<Session[]>(testSessions);
   const [activeSessionId, setActiveSessionId] = useState<string>("1");
-  const [currentGraphData, setCurrentGraphData] = useState<any>(null);
+  const [currentGraphData, setCurrentGraphData] = useState<GraphData | null>(null);
 
   const activeSession = sessions.find(s => s.id === activeSessionId);
 
   useEffect(() => {
-    if (activeSession?.messages.length) {
-      const lastMessage = activeSession.messages[activeSession.messages.length - 1];
-      const graphData = {
-        nodes: [
-          { 
-            id: "1", 
-            label: "Node A",
-            properties: {
-              message: lastMessage.query,
-              timestamp: lastMessage.timestamp
-            }
-          },
-          { 
-            id: "2", 
-            label: "Node B",
-            properties: {
-              response: lastMessage.response,
-              timestamp: lastMessage.timestamp
-            }
-          }
-        ],
-        edges: [
-          {
-            from: "1",
-            to: "2",
-            label: "RELATES_TO"
-          }
-        ]
-      };
+    if (activeSession) {
+      const graphData = createGraphDataFromSession(activeSession);
       setCurrentGraphData(graphData);
+    } else {
+      setCurrentGraphData(null);
     }
   }, [activeSession]);
-
-  const createNewSession = () => {
-    const newSession: Session = {
-      id: Date.now().toString(),
-      name: `New Session ${sessions.length + 1}`,
-      messages: [],
-      timestamp: new Date()
-    };
-    setSessions(prev => [...prev, newSession]);
-    setActiveSessionId(newSession.id);
-  };
 
   const handleQuerySubmit = (query: string, response: string) => {
     const newMessage: Message = {
@@ -127,10 +149,12 @@ const Index = () => {
 
     setSessions(prev => prev.map(session => {
       if (session.id === activeSessionId) {
-        return {
+        const updatedSession = {
           ...session,
           messages: [...session.messages, newMessage]
         };
+        setCurrentGraphData(createGraphDataFromSession(updatedSession));
+        return updatedSession;
       }
       return session;
     }));
@@ -164,11 +188,20 @@ const Index = () => {
             !showSidebar && "-translate-x-full"
           )}>
             <div className="h-full flex flex-col pt-14">
-              <div className="p-4 border-b border-[#E38C40]/10 flex justify-between items-center">
+              <div className="p-4 border-b border-[#E38C40]/10">
                 <Button 
                   variant="outline" 
-                  className="flex-1 justify-start text-[#4A4036]"
-                  onClick={createNewSession}
+                  className="w-full justify-start text-[#4A4036]"
+                  onClick={() => {
+                    const newSession: Session = {
+                      id: Date.now().toString(),
+                      name: `New Session ${sessions.length + 1}`,
+                      messages: [],
+                      timestamp: new Date()
+                    };
+                    setSessions(prev => [...prev, newSession]);
+                    setActiveSessionId(newSession.id);
+                  }}
                 >
                   <Plus className="w-4 h-4 mr-2" />
                   New Chat
