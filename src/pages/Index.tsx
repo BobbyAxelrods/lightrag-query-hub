@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Navigation } from "@/components/Navigation";
 import { QueryForm } from "@/components/QueryForm";
 import { GraphVisualization } from "@/components/GraphVisualization";
@@ -25,6 +25,13 @@ const Index = () => {
   const [currentGraphData, setCurrentGraphData] = useState<GraphData | null>(null);
   const { toast } = useToast();
 
+  // Test case: Load initial data when component mounts
+  useEffect(() => {
+    const testQuery = "What is CASH REWARD?";
+    const testResponse = "CASH REWARD is a financial incentive provided to customers under the Prime Cash Campaign when they purchase specific medical plans.";
+    handleQuerySubmit(testQuery, testResponse);
+  }, []);
+
   const handleQuerySubmit = async (query: string, response: string) => {
     const newMessage: Message = {
       id: Date.now().toString(),
@@ -38,8 +45,13 @@ const Index = () => {
     try {
       // Fetch updated graph data from local JSON file
       const graphData = await getGraphDataFromQuery();
-      console.log("Updated graph data:", graphData);
+      console.log("Updated graph data:", graphData); // Debug log to verify data structure
       setCurrentGraphData(graphData);
+      
+      toast({
+        title: "Success",
+        description: "Graph visualization updated",
+      });
     } catch (error) {
       console.error("Error loading graph data:", error);
       toast({
