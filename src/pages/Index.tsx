@@ -36,14 +36,15 @@ const Index = () => {
     setMessages(prev => [...prev, newMessage]);
     
     try {
-      const graphData = await getGraphDataFromQuery(query);
-      console.log("Received graph data:", graphData); // Debug log to verify data
+      // Fetch updated graph data from local JSON file
+      const graphData = await getGraphDataFromQuery();
+      console.log("Updated graph data:", graphData);
       setCurrentGraphData(graphData);
     } catch (error) {
-      console.error("Error fetching graph data:", error);
+      console.error("Error loading graph data:", error);
       toast({
         title: "Error",
-        description: "Failed to fetch graph data",
+        description: "Failed to load graph visualization",
         variant: "destructive",
       });
     }

@@ -157,31 +157,61 @@ interface RelationEdge {
   created_at: string;
 }
 
-export const getGraphDataFromQuery = async (query: string): Promise<GraphData> => {
+interface LocalGraphNode {
+  id: string;
+  entity: string;
+  type: string;
+  description: string;
+  rank: string;
+}
+
+interface LocalGraphEdge {
+  id: string;
+  source: string;
+  target: string;
+  description: string;
+  keywords: string;
+  weight: string;
+  rank: string;
+  created_at: string;
+}
+
+interface LocalGraphData {
+  nodes: LocalGraphNode[];
+  edges: LocalGraphEdge[];
+}
+
+export const getGraphDataFromQuery = async (): Promise<GraphData> => {
   try {
-    const response = await api.post("/get-graph-data", { query });
-    const data = response.data;
+    // Read the local graph_context.json file
+    const response = await fetch('/graph_context.json');
+    if (!response.ok) {
+      throw new Error('Failed to load graph context');
+    }
     
-    // Transform the API response into GraphData format
+    const data: LocalGraphData = await response.json();
+    
+    // Transform the local JSON data into GraphData format
     return {
-      nodes: data.entities.map((entity: EntityNode) => ({
-        id: entity.id,
-        label: entity.entity,
+      nodes: data.nodes.map((node) => ({
+        id: node.id,
+        label: node.entity.replace(/"/g, ''),
         properties: {
-          type: entity.type,
-          description: entity.description,
-          rank: entity.rank,
-          content: entity.description
+          type: node.type.replace(/"/g, ''),
+          description: node.description.replace(/"/g, ''),
+          rank: parseInt(node.rank),
+          content: node.description.replace(/"/g, '')
         }
       })),
-      edges: data.relations.map((relation: RelationEdge) => ({
-        from: relation.source,
-        to: relation.target,
-        label: relation.description,
+      edges: data.edges.map((edge) => ({
+        from: edge.source,
+        to: edge.target,
+        label: edge.description.replace(/"/g, ''),
         properties: {
-          weight: relation.weight,
-          rank: relation.rank,
-          created_at: relation.created_at
+          weight: parseFloat(edge.weight),
+          rank: parseInt(edge.rank),
+          keywords: edge.keywords.replace(/"/g, ''),
+          created_at: edge.created_at
         }
       }))
     };
