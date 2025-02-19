@@ -17,6 +17,135 @@ interface Message {
   timestamp: Date;
 }
 
+// Test cases for different types of queries and expected graph structures
+const generateGraphData = (query: string, response: string, messageId: string): GraphData => {
+  // Test Case 1: Knowledge Query
+  if (query.toLowerCase().includes("what") || query.toLowerCase().includes("how")) {
+    return {
+      nodes: [
+        {
+          id: `concept-${messageId}`,
+          label: "Concept",
+          properties: {
+            content: query,
+            type: "knowledge_query",
+            timestamp: new Date().toISOString()
+          }
+        },
+        {
+          id: `explanation-${messageId}`,
+          label: "Explanation",
+          properties: {
+            content: response,
+            type: "knowledge_response",
+            timestamp: new Date().toISOString()
+          }
+        }
+      ],
+      edges: [
+        {
+          from: `concept-${messageId}`,
+          to: `explanation-${messageId}`,
+          label: "EXPLAINS"
+        }
+      ]
+    };
+  }
+  
+  // Test Case 2: Action Query
+  if (query.toLowerCase().includes("can you") || query.toLowerCase().includes("please")) {
+    return {
+      nodes: [
+        {
+          id: `request-${messageId}`,
+          label: "Request",
+          properties: {
+            content: query,
+            type: "action_request",
+            timestamp: new Date().toISOString()
+          }
+        },
+        {
+          id: `action-${messageId}`,
+          label: "Action",
+          properties: {
+            content: response,
+            type: "action_response",
+            timestamp: new Date().toISOString()
+          }
+        },
+        {
+          id: `status-${messageId}`,
+          label: "Status",
+          properties: {
+            content: "Completed",
+            type: "action_status",
+            timestamp: new Date().toISOString()
+          }
+        }
+      ],
+      edges: [
+        {
+          from: `request-${messageId}`,
+          to: `action-${messageId}`,
+          label: "TRIGGERS"
+        },
+        {
+          from: `action-${messageId}`,
+          to: `status-${messageId}`,
+          label: "RESULTS_IN"
+        }
+      ]
+    };
+  }
+
+  // Test Case 3: Analysis Query (Default)
+  return {
+    nodes: [
+      {
+        id: `input-${messageId}`,
+        label: "Input",
+        properties: {
+          content: query,
+          type: "analysis_query",
+          timestamp: new Date().toISOString()
+        }
+      },
+      {
+        id: `analysis-${messageId}`,
+        label: "Analysis",
+        properties: {
+          content: response,
+          type: "analysis_result",
+          timestamp: new Date().toISOString()
+        }
+      },
+      {
+        id: `metadata-${messageId}`,
+        label: "Metadata",
+        properties: {
+          queryLength: query.length,
+          responseLength: response.length,
+          type: "analysis_metadata",
+          timestamp: new Date().toISOString()
+        }
+      }
+    ],
+    edges: [
+      {
+        from: `input-${messageId}`,
+        to: `analysis-${messageId}`,
+        label: "ANALYZES"
+      },
+      {
+        from: `analysis-${messageId}`,
+        to: `metadata-${messageId}`,
+        label: "HAS_METADATA"
+      }
+    ]
+  };
+};
+
 const Index = () => {
   const [showGraph, setShowGraph] = useState(true);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -32,36 +161,8 @@ const Index = () => {
 
     setMessages(prev => [...prev, newMessage]);
     
-    // In a real implementation, this would be replaced by actual graph data from the backend
-    // The backend would return the updated graph structure after processing the query
-    const newGraphData = {
-      nodes: [
-        {
-          id: `query-${newMessage.id}`,
-          label: "Query",
-          properties: {
-            content: query,
-            timestamp: newMessage.timestamp.toISOString()
-          }
-        },
-        {
-          id: `response-${newMessage.id}`,
-          label: "Response",
-          properties: {
-            content: response,
-            timestamp: newMessage.timestamp.toISOString()
-          }
-        }
-      ],
-      edges: [
-        {
-          from: `query-${newMessage.id}`,
-          to: `response-${newMessage.id}`,
-          label: "GENERATES"
-        }
-      ]
-    };
-
+    // Generate graph data based on the query type
+    const newGraphData = generateGraphData(query, response, newMessage.id);
     setCurrentGraphData(newGraphData);
   };
 
