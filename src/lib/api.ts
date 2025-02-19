@@ -138,3 +138,55 @@ export const getDocumentsAPI = async (): Promise<QueryResponse> => {
   const response = await api.post("/get-document", {});
   return response.data;
 };
+
+interface EntityNode {
+  id: string;
+  entity: string;
+  type: string;
+  description: string;
+  rank: number;
+}
+
+interface RelationEdge {
+  id: string;
+  source: string;
+  target: string;
+  description: string;
+  weight: number;
+  rank: number;
+  created_at: string;
+}
+
+export const getGraphDataFromQuery = async (query: string): Promise<GraphData> => {
+  try {
+    const response = await api.post("/get-graph-data", { query });
+    const data = response.data;
+    
+    // Transform the API response into GraphData format
+    return {
+      nodes: data.entities.map((entity: EntityNode) => ({
+        id: entity.id,
+        label: entity.entity,
+        properties: {
+          type: entity.type,
+          description: entity.description,
+          rank: entity.rank,
+          content: entity.description
+        }
+      })),
+      edges: data.relations.map((relation: RelationEdge) => ({
+        from: relation.source,
+        to: relation.target,
+        label: relation.description,
+        properties: {
+          weight: relation.weight,
+          rank: relation.rank,
+          created_at: relation.created_at
+        }
+      }))
+    };
+  } catch (error) {
+    console.error("Failed to fetch graph data:", error);
+    throw error;
+  }
+};

@@ -9,6 +9,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { ChevronRight } from "lucide-react";
 import { GraphData } from "@/components/graph/types";
+import { getGraphDataFromQuery } from "@/lib/api";
+import { useToast } from "@/hooks/use-toast";
 
 interface Message {
   id: string;
@@ -17,42 +19,11 @@ interface Message {
   timestamp: Date;
 }
 
-const generateGraphData = (query: string, response: string, messageId: string): GraphData => {
-  return {
-    nodes: [
-      {
-        id: `input-${messageId}`,
-        label: "Input",
-        properties: {
-          content: query,
-          type: "query",
-          timestamp: new Date().toISOString()
-        }
-      },
-      {
-        id: `output-${messageId}`,
-        label: "Output",
-        properties: {
-          content: response,
-          type: "response",
-          timestamp: new Date().toISOString()
-        }
-      }
-    ],
-    edges: [
-      {
-        from: `input-${messageId}`,
-        to: `output-${messageId}`,
-        label: "GENERATES"
-      }
-    ]
-  };
-};
-
 const Index = () => {
   const [showGraph, setShowGraph] = useState(true);
   const [messages, setMessages] = useState<Message[]>([]);
   const [currentGraphData, setCurrentGraphData] = useState<GraphData | null>(null);
+  const { toast } = useToast();
 
   useEffect(() => {
     const initialQuery = "What is Graph RAG?";
@@ -60,7 +31,7 @@ const Index = () => {
     handleQuerySubmit(initialQuery, initialResponse);
   }, []);
 
-  const handleQuerySubmit = (query: string, response: string) => {
+  const handleQuerySubmit = async (query: string, response: string) => {
     const newMessage: Message = {
       id: Date.now().toString(),
       query,
@@ -70,9 +41,16 @@ const Index = () => {
 
     setMessages(prev => [...prev, newMessage]);
     
-    const newGraphData = generateGraphData(query, response, newMessage.id);
-    console.log("Setting new graph data:", newGraphData);
-    setCurrentGraphData(newGraphData);
+    try {
+      const graphData = await getGraphDataFromQuery(query);
+      setCurrentGraphData(graphData);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to fetch graph data",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
