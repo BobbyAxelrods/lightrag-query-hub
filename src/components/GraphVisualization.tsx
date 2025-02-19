@@ -3,9 +3,13 @@ import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { SimpleNetworkGraph } from "./graph/SimpleNetworkGraph";
 import { GraphControls } from "./graph/GraphControls";
-import { testGraphData } from "@/lib/testGraphData";
+import { GraphData } from "./graph/types";
 
-export function GraphVisualization() {
+interface GraphVisualizationProps {
+  graphData: GraphData;
+}
+
+export function GraphVisualization({ graphData }: GraphVisualizationProps) {
   const { toast } = useToast();
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [showGraph, setShowGraph] = useState(true);
@@ -14,7 +18,7 @@ export function GraphVisualization() {
 
   const handleNodeClick = (nodeId: string) => {
     setSelectedNodeId(nodeId);
-    const node = testGraphData.nodes.find(n => n.id === nodeId);
+    const node = graphData.nodes.find(n => n.id === nodeId);
     if (node) {
       toast({
         title: node.label,
@@ -39,7 +43,7 @@ export function GraphVisualization() {
       {showGraph && (
         <div className="flex-1 mt-4 bg-white/90 backdrop-blur-sm rounded-xl shadow-xl p-4">
           <SimpleNetworkGraph 
-            data={testGraphData}
+            data={graphData}
             onNodeClick={handleNodeClick}
             showLabels={showLabels}
             hideIsolatedNodes={hideIsolatedNodes}

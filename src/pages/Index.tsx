@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Navigation } from "@/components/Navigation";
 import { QueryForm } from "@/components/QueryForm";
 import { GraphVisualization } from "@/components/GraphVisualization";
@@ -69,6 +68,43 @@ const Index = () => {
   const [showGraph, setShowGraph] = useState(true);
   const [sessions, setSessions] = useState<Session[]>(testSessions);
   const [activeSessionId, setActiveSessionId] = useState<string>("1");
+  const [currentGraphData, setCurrentGraphData] = useState<any>(null);
+
+  const activeSession = sessions.find(s => s.id === activeSessionId);
+
+  useEffect(() => {
+    if (activeSession?.messages.length) {
+      const lastMessage = activeSession.messages[activeSession.messages.length - 1];
+      const graphData = {
+        nodes: [
+          { 
+            id: "1", 
+            label: "Node A",
+            properties: {
+              message: lastMessage.query,
+              timestamp: lastMessage.timestamp
+            }
+          },
+          { 
+            id: "2", 
+            label: "Node B",
+            properties: {
+              response: lastMessage.response,
+              timestamp: lastMessage.timestamp
+            }
+          }
+        ],
+        edges: [
+          {
+            from: "1",
+            to: "2",
+            label: "RELATES_TO"
+          }
+        ]
+      };
+      setCurrentGraphData(graphData);
+    }
+  }, [activeSession]);
 
   const createNewSession = () => {
     const newSession: Session = {
@@ -100,8 +136,6 @@ const Index = () => {
     }));
   };
 
-  const activeSession = sessions.find(s => s.id === activeSessionId);
-
   return (
     <div className="relative h-screen overflow-hidden text-[#4A4036] bg-[#F8F8F8]">
       <Background3D />
@@ -110,12 +144,26 @@ const Index = () => {
         <Navigation />
         
         <div className="flex-1 flex min-h-0">
-          {/* Session Sidebar */}
+          <div className="absolute left-0 top-4 z-40 bg-white/80 hover:bg-white rounded-r-lg shadow-md">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-8 h-8 p-0"
+              onClick={() => setShowSidebar(!showSidebar)}
+            >
+              {showSidebar ? (
+                <ChevronLeft className="h-4 w-4" />
+              ) : (
+                <ChevronRight className="h-4 w-4" />
+              )}
+            </Button>
+          </div>
+
           <aside className={cn(
             "absolute left-0 top-0 bottom-0 w-80 bg-white/80 backdrop-blur-sm border-r border-[#E38C40]/10 transition-all duration-300 transform z-30",
             !showSidebar && "-translate-x-full"
           )}>
-            <div className="h-full flex flex-col">
+            <div className="h-full flex flex-col pt-14">
               <div className="p-4 border-b border-[#E38C40]/10 flex justify-between items-center">
                 <Button 
                   variant="outline" 
@@ -124,14 +172,6 @@ const Index = () => {
                 >
                   <Plus className="w-4 h-4 mr-2" />
                   New Chat
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="ml-2 w-8 h-8 p-0"
-                  onClick={() => setShowSidebar(false)}
-                >
-                  <ChevronLeft className="h-4 w-4" />
                 </Button>
               </div>
               
@@ -159,20 +199,6 @@ const Index = () => {
             </div>
           </aside>
 
-          {/* Show sidebar toggle when collapsed */}
-          <Button
-            variant="ghost"
-            size="sm"
-            className={cn(
-              "absolute left-4 top-4 w-8 h-8 p-0 bg-white/80 hover:bg-white z-20 transition-opacity duration-300",
-              showSidebar && "opacity-0 pointer-events-none"
-            )}
-            onClick={() => setShowSidebar(true)}
-          >
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-
-          {/* Main Content */}
           <main className={cn(
             "flex-1 flex min-h-0 transition-all duration-300",
             showSidebar ? "ml-80" : "ml-0"
@@ -228,13 +254,14 @@ const Index = () => {
               </div>
             </div>
 
-            {/* Graph Viewer */}
             <div className={cn(
               "fixed right-0 top-14 bottom-0 w-[500px] bg-white/80 backdrop-blur-sm border-l border-[#E38C40]/10 transition-all duration-300",
               !showGraph && "translate-x-full"
             )}>
               <div className="h-full p-4">
-                <GraphVisualization />
+                {currentGraphData && (
+                  <GraphVisualization graphData={currentGraphData} />
+                )}
               </div>
             </div>
           </main>
