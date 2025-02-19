@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Navigation } from "@/components/Navigation";
 import { QueryForm } from "@/components/QueryForm";
@@ -166,33 +167,35 @@ const Index = () => {
               </h1>
             </div>
 
-            <ScrollArea className="flex-1">
-              <div className="p-4 space-y-8">
-                {activeSession?.messages.map((message) => (
-                  <div key={message.id} className="space-y-4">
-                    <div className="bg-[#F5F5F3]/80 backdrop-blur-sm rounded-lg p-6">
-                      <p className="font-medium mb-2">Query:</p>
-                      <p>{message.query}</p>
-                      <p className="text-xs text-[#4A4036]/60 mt-2">
-                        {message.timestamp.toLocaleString()}
-                      </p>
+            <div className="flex-1 flex flex-col min-h-0 relative">
+              <ScrollArea className="flex-1 pb-[280px]"> {/* Added padding to account for fixed query form */}
+                <div className="p-4 space-y-8">
+                  {activeSession?.messages.map((message) => (
+                    <div key={message.id} className="space-y-4">
+                      <div className="bg-[#F5F5F3]/80 backdrop-blur-sm rounded-lg p-6">
+                        <p className="font-medium mb-2">Query:</p>
+                        <p>{message.query}</p>
+                        <p className="text-xs text-[#4A4036]/60 mt-2">
+                          {message.timestamp.toLocaleString()}
+                        </p>
+                      </div>
+                      <div className="bg-[#F5F5F3]/80 backdrop-blur-sm rounded-lg p-6">
+                        <p className="font-medium mb-2">Response:</p>
+                        <p>{message.response}</p>
+                      </div>
                     </div>
-                    <div className="bg-[#F5F5F3]/80 backdrop-blur-sm rounded-lg p-6">
-                      <p className="font-medium mb-2">Response:</p>
-                      <p>{message.response}</p>
-                    </div>
-                  </div>
-                ))}
+                  ))}
 
-                {activeSession?.messages.length ? (
-                  <GraphVisualization />
-                ) : null}
-
-                <div className="pt-4">
-                  <QueryForm onQueryComplete={handleQuerySubmit} />
+                  {activeSession?.messages.length ? (
+                    <GraphVisualization />
+                  ) : null}
                 </div>
+              </ScrollArea>
+
+              <div className="absolute bottom-0 left-0 right-0 p-4 bg-white/80 backdrop-blur-sm border-t border-[#E38C40]/20">
+                <QueryForm onQueryComplete={handleQuerySubmit} />
               </div>
-            </ScrollArea>
+            </div>
           </div>
         </div>
       </div>
