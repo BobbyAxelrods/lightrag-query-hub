@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { SimpleNetworkGraph } from "./graph/SimpleNetworkGraph";
 import { GraphControls } from "./graph/GraphControls";
@@ -14,7 +14,15 @@ export function GraphVisualization({ graphData }: GraphVisualizationProps) {
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [showGraph, setShowGraph] = useState(true);
   const [showLabels, setShowLabels] = useState(true);
-  const [hideIsolatedNodes, setHideIsolatedNodes] = useState(true);
+  const [hideIsolatedNodes, setHideIsolatedNodes] = useState(false);
+
+  useEffect(() => {
+    console.log("GraphVisualization mounted with data:", graphData);
+  }, []);
+
+  useEffect(() => {
+    console.log("GraphData updated:", graphData);
+  }, [graphData]);
 
   const handleNodeClick = (nodeId: string) => {
     setSelectedNodeId(nodeId);
@@ -29,7 +37,38 @@ export function GraphVisualization({ graphData }: GraphVisualizationProps) {
     }
   };
 
-  console.log('GraphVisualization received data:', graphData); // Debug log
+  // Add initial test data if no graph data is provided
+  const testData: GraphData = {
+    nodes: [
+      {
+        id: "test-1",
+        label: "Test Node 1",
+        properties: {
+          content: "Test Content 1",
+          type: "test",
+          timestamp: new Date().toISOString()
+        }
+      },
+      {
+        id: "test-2",
+        label: "Test Node 2",
+        properties: {
+          content: "Test Content 2",
+          type: "test",
+          timestamp: new Date().toISOString()
+        }
+      }
+    ],
+    edges: [
+      {
+        from: "test-1",
+        to: "test-2",
+        label: "TEST_RELATION"
+      }
+    ]
+  };
+
+  const displayData = graphData?.nodes?.length ? graphData : testData;
 
   return (
     <div className="w-full h-full flex flex-col">
@@ -42,10 +81,10 @@ export function GraphVisualization({ graphData }: GraphVisualizationProps) {
         onToggleIsolatedNodes={() => setHideIsolatedNodes(!hideIsolatedNodes)}
       />
 
-      {showGraph && graphData && graphData.nodes.length > 0 && (
+      {showGraph && displayData && (
         <div className="flex-1 mt-4 bg-white/90 backdrop-blur-sm rounded-xl shadow-xl p-4">
           <SimpleNetworkGraph 
-            data={graphData}
+            data={displayData}
             onNodeClick={handleNodeClick}
             showLabels={showLabels}
             hideIsolatedNodes={hideIsolatedNodes}

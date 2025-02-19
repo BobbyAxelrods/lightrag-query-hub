@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Navigation } from "@/components/Navigation";
 import { QueryForm } from "@/components/QueryForm";
 import { GraphVisualization } from "@/components/GraphVisualization";
@@ -19,7 +18,7 @@ interface Message {
 
 // Test cases for different types of queries and expected graph structures
 const generateGraphData = (query: string, response: string, messageId: string): GraphData => {
-  console.log("Generating graph data for query:", query); // Debug log
+  console.log("Generating graph data for query:", query);
 
   // Test Case 1: Knowledge Query
   if (query.toLowerCase().includes("what") || query.toLowerCase().includes("how")) {
@@ -52,10 +51,10 @@ const generateGraphData = (query: string, response: string, messageId: string): 
         }
       ]
     };
-    console.log("Generated knowledge graph:", graphData); // Debug log
+    console.log("Generated knowledge graph:", graphData);
     return graphData;
   }
-  
+
   // Test Case 2: Action Query
   if (query.toLowerCase().includes("can you") || query.toLowerCase().includes("please")) {
     const graphData = {
@@ -101,38 +100,27 @@ const generateGraphData = (query: string, response: string, messageId: string): 
         }
       ]
     };
-    console.log("Generated action graph:", graphData); // Debug log
+    console.log("Generated action graph:", graphData);
     return graphData;
   }
 
-  // Test Case 3: Analysis Query (Default)
-  const graphData = {
+  return {
     nodes: [
       {
         id: `input-${messageId}`,
         label: "Input",
         properties: {
           content: query,
-          type: "analysis_query",
+          type: "default_query",
           timestamp: new Date().toISOString()
         }
       },
       {
-        id: `analysis-${messageId}`,
-        label: "Analysis",
+        id: `output-${messageId}`,
+        label: "Output",
         properties: {
           content: response,
-          type: "analysis_result",
-          timestamp: new Date().toISOString()
-        }
-      },
-      {
-        id: `metadata-${messageId}`,
-        label: "Metadata",
-        properties: {
-          queryLength: query.length,
-          responseLength: response.length,
-          type: "analysis_metadata",
+          type: "default_response",
           timestamp: new Date().toISOString()
         }
       }
@@ -140,24 +128,23 @@ const generateGraphData = (query: string, response: string, messageId: string): 
     edges: [
       {
         from: `input-${messageId}`,
-        to: `analysis-${messageId}`,
-        label: "ANALYZES"
-      },
-      {
-        from: `analysis-${messageId}`,
-        to: `metadata-${messageId}`,
-        label: "HAS_METADATA"
+        to: `output-${messageId}`,
+        label: "PROCESSES"
       }
     ]
   };
-  console.log("Generated analysis graph:", graphData); // Debug log
-  return graphData;
 };
 
 const Index = () => {
   const [showGraph, setShowGraph] = useState(true);
   const [messages, setMessages] = useState<Message[]>([]);
   const [currentGraphData, setCurrentGraphData] = useState<GraphData | null>(null);
+
+  useEffect(() => {
+    const initialQuery = "What is Graph RAG?";
+    const initialResponse = "Graph RAG is a system that uses graph-based retrieval augmented generation for processing queries.";
+    handleQuerySubmit(initialQuery, initialResponse);
+  }, []);
 
   const handleQuerySubmit = (query: string, response: string) => {
     const newMessage: Message = {
@@ -169,9 +156,8 @@ const Index = () => {
 
     setMessages(prev => [...prev, newMessage]);
     
-    // Generate graph data based on the query type
     const newGraphData = generateGraphData(query, response, newMessage.id);
-    console.log("Setting new graph data:", newGraphData); // Debug log
+    console.log("Setting new graph data:", newGraphData);
     setCurrentGraphData(newGraphData);
   };
 
