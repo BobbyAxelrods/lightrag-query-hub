@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+
+import { useState } from "react";
 import { Navigation } from "@/components/Navigation";
 import { QueryForm } from "@/components/QueryForm";
 import { GraphVisualization } from "@/components/GraphVisualization";
@@ -6,7 +7,7 @@ import { Background3D } from "@/components/Background3D";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, MessageCircle, Plus } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { GraphData } from "@/components/graph/types";
 
 interface Message {
@@ -16,128 +17,10 @@ interface Message {
   timestamp: Date;
 }
 
-interface Session {
-  id: string;
-  name: string;
-  messages: Message[];
-  timestamp: Date;
-}
-
-const testSessions: Session[] = [
-  {
-    id: "1",
-    name: "Graph Analysis Session 1",
-    timestamp: new Date(Date.now() - 7200000), // 2 hours ago
-    messages: [
-      {
-        id: "1-1",
-        query: "What are the connections between Node A and Node B?",
-        response: "Based on the graph analysis, Node A has a direct connection to Node B through a 'RELATES_TO' relationship.",
-        timestamp: new Date(Date.now() - 7200000)
-      },
-      {
-        id: "1-2",
-        query: "Show more details about this connection.",
-        response: "The 'RELATES_TO' relationship between Node A and Node B has a weight of 0.8 and was created 3 days ago.",
-        timestamp: new Date(Date.now() - 7000000)
-      }
-    ]
-  },
-  {
-    id: "2",
-    name: "Dependency Analysis",
-    timestamp: new Date(Date.now() - 3600000), // 1 hour ago
-    messages: [
-      {
-        id: "2-1",
-        query: "Show all dependencies for Node C",
-        response: "Node C depends on nodes D and E directly.",
-        timestamp: new Date(Date.now() - 3600000)
-      },
-      {
-        id: "2-2",
-        query: "What are the indirect dependencies?",
-        response: "Through Node D, Node C indirectly depends on nodes F and G.",
-        timestamp: new Date(Date.now() - 3300000)
-      }
-    ]
-  }
-];
-
-const createGraphDataFromSession = (session: Session): GraphData => {
-  const nodes = [];
-  const edges = [];
-  
-  if (session.messages.length > 0) {
-    const uniqueNodes = new Set();
-    
-    session.messages.forEach((message, index) => {
-      // Create query node
-      const queryNodeId = `q${index}`;
-      if (!uniqueNodes.has(queryNodeId)) {
-        nodes.push({
-          id: queryNodeId,
-          label: `Query ${index + 1}`,
-          properties: {
-            content: message.query,
-            timestamp: message.timestamp.toISOString()
-          }
-        });
-        uniqueNodes.add(queryNodeId);
-      }
-
-      // Create response node
-      const responseNodeId = `r${index}`;
-      if (!uniqueNodes.has(responseNodeId)) {
-        nodes.push({
-          id: responseNodeId,
-          label: `Response ${index + 1}`,
-          properties: {
-            content: message.response,
-            timestamp: message.timestamp.toISOString()
-          }
-        });
-        uniqueNodes.add(responseNodeId);
-      }
-
-      // Create edge between query and response
-      edges.push({
-        from: queryNodeId,
-        to: responseNodeId,
-        label: "GENERATES"
-      });
-
-      // Connect consecutive messages
-      if (index > 0) {
-        edges.push({
-          from: `r${index - 1}`,
-          to: queryNodeId,
-          label: "LEADS_TO"
-        });
-      }
-    });
-  }
-
-  return { nodes, edges };
-};
-
 const Index = () => {
-  const [showSidebar, setShowSidebar] = useState(true);
   const [showGraph, setShowGraph] = useState(true);
-  const [sessions, setSessions] = useState<Session[]>(testSessions);
-  const [activeSessionId, setActiveSessionId] = useState<string>("1");
+  const [messages, setMessages] = useState<Message[]>([]);
   const [currentGraphData, setCurrentGraphData] = useState<GraphData | null>(null);
-
-  const activeSession = sessions.find(s => s.id === activeSessionId);
-
-  useEffect(() => {
-    if (activeSession) {
-      const graphData = createGraphDataFromSession(activeSession);
-      setCurrentGraphData(graphData);
-    } else {
-      setCurrentGraphData(null);
-    }
-  }, [activeSession]);
 
   const handleQuerySubmit = (query: string, response: string) => {
     const newMessage: Message = {
@@ -147,17 +30,39 @@ const Index = () => {
       timestamp: new Date()
     };
 
-    setSessions(prev => prev.map(session => {
-      if (session.id === activeSessionId) {
-        const updatedSession = {
-          ...session,
-          messages: [...session.messages, newMessage]
-        };
-        setCurrentGraphData(createGraphDataFromSession(updatedSession));
-        return updatedSession;
-      }
-      return session;
-    }));
+    setMessages(prev => [...prev, newMessage]);
+    
+    // In a real implementation, this would be replaced by actual graph data from the backend
+    // The backend would return the updated graph structure after processing the query
+    const newGraphData = {
+      nodes: [
+        {
+          id: `query-${newMessage.id}`,
+          label: "Query",
+          properties: {
+            content: query,
+            timestamp: newMessage.timestamp.toISOString()
+          }
+        },
+        {
+          id: `response-${newMessage.id}`,
+          label: "Response",
+          properties: {
+            content: response,
+            timestamp: newMessage.timestamp.toISOString()
+          }
+        }
+      ],
+      edges: [
+        {
+          from: `query-${newMessage.id}`,
+          to: `response-${newMessage.id}`,
+          label: "GENERATES"
+        }
+      ]
+    };
+
+    setCurrentGraphData(newGraphData);
   };
 
   return (
@@ -168,82 +73,13 @@ const Index = () => {
         <Navigation />
         
         <div className="flex-1 flex min-h-0">
-          <div className="absolute left-0 top-4 z-40 bg-white/80 hover:bg-white rounded-r-lg shadow-md">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="w-8 h-8 p-0"
-              onClick={() => setShowSidebar(!showSidebar)}
-            >
-              {showSidebar ? (
-                <ChevronLeft className="h-4 w-4" />
-              ) : (
-                <ChevronRight className="h-4 w-4" />
-              )}
-            </Button>
-          </div>
-
-          <aside className={cn(
-            "absolute left-0 top-0 bottom-0 w-80 bg-white/80 backdrop-blur-sm border-r border-[#E38C40]/10 transition-all duration-300 transform z-30",
-            !showSidebar && "-translate-x-full"
-          )}>
-            <div className="h-full flex flex-col pt-14">
-              <div className="p-4 border-b border-[#E38C40]/10">
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-start text-[#4A4036]"
-                  onClick={() => {
-                    const newSession: Session = {
-                      id: Date.now().toString(),
-                      name: `New Session ${sessions.length + 1}`,
-                      messages: [],
-                      timestamp: new Date()
-                    };
-                    setSessions(prev => [...prev, newSession]);
-                    setActiveSessionId(newSession.id);
-                  }}
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  New Chat
-                </Button>
-              </div>
-              
-              <ScrollArea className="flex-1">
-                <div className="p-2 space-y-1">
-                  {sessions.map((session) => (
-                    <div
-                      key={session.id}
-                      className={cn(
-                        "p-3 rounded-lg cursor-pointer hover:bg-[#E38C40]/5 transition-colors",
-                        activeSessionId === session.id && "bg-[#E38C40]/10"
-                      )}
-                      onClick={() => setActiveSessionId(session.id)}
-                    >
-                      <div className="flex items-center justify-between">
-                        <h3 className="font-medium truncate">{session.name}</h3>
-                        <span className="text-xs text-[#4A4036]/60 ml-2 flex-shrink-0">
-                          {session.timestamp.toLocaleDateString()}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </ScrollArea>
-            </div>
-          </aside>
-
-          <main className={cn(
-            "flex-1 flex min-h-0 transition-all duration-300",
-            showSidebar ? "ml-80" : "ml-0"
-          )}>
+          <main className="flex-1 flex min-h-0">
             <div className={cn(
               "flex-1 flex flex-col min-h-0 transition-all duration-300",
               showGraph && "mr-[500px]"
             )}>
               <div className="h-14 px-4 border-b border-[#E38C40]/10 flex items-center gap-4 flex-shrink-0 bg-white/80 backdrop-blur-sm">
-                <h1 className="text-lg font-medium flex-1">
-                  {activeSession?.name || "New Chat"}
-                </h1>
+                <h1 className="text-lg font-medium flex-1">Chat Interface</h1>
                 <Button
                   variant="ghost"
                   size="sm"
@@ -257,7 +93,7 @@ const Index = () => {
               <div className="flex-1 flex flex-col min-h-0 relative">
                 <ScrollArea className="flex-1 pb-[200px]">
                   <div className="max-w-3xl mx-auto w-full p-4 space-y-6">
-                    {activeSession?.messages.map((message) => (
+                    {messages.map((message) => (
                       <div key={message.id} className="space-y-6">
                         <div className="flex flex-col max-w-3xl">
                           <div className="bg-[#F5F5F3] rounded-lg p-4 shadow-sm">
