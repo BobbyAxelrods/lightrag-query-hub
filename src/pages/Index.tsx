@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Navigation } from "@/components/Navigation";
 import { QueryForm } from "@/components/QueryForm";
 import { GraphVisualization } from "@/components/GraphVisualization";
@@ -24,13 +24,6 @@ const Index = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [currentGraphData, setCurrentGraphData] = useState<GraphData | null>(null);
   const { toast } = useToast();
-
-  // Test case: Load initial data when component mounts
-  useEffect(() => {
-    const testQuery = "What is CASH REWARD?";
-    const testResponse = "CASH REWARD is a financial incentive provided to customers under the Prime Cash Campaign when they purchase specific medical plans.";
-    handleQuerySubmit(testQuery, testResponse);
-  }, []);
 
   const handleQuerySubmit = async (query: string, response: string) => {
     const newMessage: Message = {

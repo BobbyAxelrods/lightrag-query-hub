@@ -183,13 +183,14 @@ interface LocalGraphData {
 
 export const getGraphDataFromQuery = async (): Promise<GraphData> => {
   try {
-    // Read the local graph_context.json file
-    const response = await fetch('/graph_context.json');
+    // Read from the specified local file path
+    const response = await fetch('/graph_viewer/graph_context.json');
     if (!response.ok) {
       throw new Error('Failed to load graph context');
     }
     
     const data: LocalGraphData = await response.json();
+    console.log("Loaded graph data from file:", data); // Debug log
     
     // Transform the local JSON data into GraphData format
     return {
