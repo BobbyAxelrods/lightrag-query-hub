@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Navigation } from "@/components/Navigation";
 import { QueryForm } from "@/components/QueryForm";
 import { GraphVisualization } from "@/components/GraphVisualization";
@@ -27,6 +27,26 @@ const Index = () => {
   const [currentGraphData, setCurrentGraphData] = useState<GraphData | null>(null);
   const { toast } = useToast();
 
+  // Fetch initial graph data when component mounts
+  useEffect(() => {
+    fetchGraphData();
+  }, []);
+
+  const fetchGraphData = async () => {
+    try {
+      const graphData = await getGraphDataFromQuery();
+      console.log("Fetched graph data:", graphData);
+      setCurrentGraphData(graphData);
+    } catch (error) {
+      console.error("Error loading graph data:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load graph visualization",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleStreamUpdate = (partialResponse: string) => {
     setMessages(prev => {
       const lastMessage = prev[prev.length - 1];
@@ -41,7 +61,6 @@ const Index = () => {
   };
 
   const handleQuerySubmit = async (query: string, response: string) => {
-    // Create new message
     const newMessage: Message = {
       id: Date.now().toString(),
       query,
@@ -50,11 +69,9 @@ const Index = () => {
       streaming: true
     };
 
-    // Add the new message immediately
     setMessages(prev => [...prev, newMessage]);
 
     try {
-      // Update message with final response and remove streaming flag
       setMessages(prev => {
         const last = prev[prev.length - 1];
         if (last.id === newMessage.id) {
@@ -63,10 +80,8 @@ const Index = () => {
         return prev;
       });
 
-      // Fetch updated graph data
-      const graphData = await getGraphDataFromQuery();
-      console.log("Updated graph data:", graphData);
-      setCurrentGraphData(graphData);
+      // Fetch updated graph data after query
+      await fetchGraphData();
       
       toast({
         title: "Success",
