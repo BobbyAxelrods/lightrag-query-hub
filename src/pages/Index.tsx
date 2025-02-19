@@ -111,68 +111,72 @@ const Index = () => {
         
         <div className="flex-1 flex min-h-0">
           {/* Session Sidebar */}
-          <div 
-            className={cn(
-              "w-80 bg-white/80 backdrop-blur-sm border-r border-[#E38C40]/10 transition-all duration-300 flex flex-col",
-              !showSidebar && "-translate-x-full"
-            )}
-          >
-            <div className="p-4 border-b border-[#E38C40]/10 flex justify-between items-center">
-              <Button 
-                variant="outline" 
-                className="flex-1 justify-start text-[#4A4036]"
-                onClick={createNewSession}
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                New Chat
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="ml-2 w-8 h-8 p-0"
-                onClick={() => setShowSidebar(!showSidebar)}
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-            </div>
-            
-            <ScrollArea className="flex-1">
-              <div className="p-2 space-y-1">
-                {sessions.map((session) => (
-                  <div
-                    key={session.id}
-                    className={cn(
-                      "p-3 rounded-lg cursor-pointer hover:bg-[#E38C40]/5 transition-colors",
-                      activeSessionId === session.id && "bg-[#E38C40]/10"
-                    )}
-                    onClick={() => setActiveSessionId(session.id)}
-                  >
-                    <div className="flex items-center justify-between">
-                      <h3 className="font-medium truncate">{session.name}</h3>
-                      <span className="text-xs text-[#4A4036]/60 ml-2 flex-shrink-0">
-                        {session.timestamp.toLocaleDateString()}
-                      </span>
-                    </div>
-                  </div>
-                ))}
+          <aside className={cn(
+            "absolute left-0 top-0 bottom-0 w-80 bg-white/80 backdrop-blur-sm border-r border-[#E38C40]/10 transition-all duration-300 transform z-30",
+            !showSidebar && "-translate-x-full"
+          )}>
+            <div className="h-full flex flex-col">
+              <div className="p-4 border-b border-[#E38C40]/10 flex justify-between items-center">
+                <Button 
+                  variant="outline" 
+                  className="flex-1 justify-start text-[#4A4036]"
+                  onClick={createNewSession}
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  New Chat
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="ml-2 w-8 h-8 p-0"
+                  onClick={() => setShowSidebar(false)}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
               </div>
-            </ScrollArea>
-          </div>
+              
+              <ScrollArea className="flex-1">
+                <div className="p-2 space-y-1">
+                  {sessions.map((session) => (
+                    <div
+                      key={session.id}
+                      className={cn(
+                        "p-3 rounded-lg cursor-pointer hover:bg-[#E38C40]/5 transition-colors",
+                        activeSessionId === session.id && "bg-[#E38C40]/10"
+                      )}
+                      onClick={() => setActiveSessionId(session.id)}
+                    >
+                      <div className="flex items-center justify-between">
+                        <h3 className="font-medium truncate">{session.name}</h3>
+                        <span className="text-xs text-[#4A4036]/60 ml-2 flex-shrink-0">
+                          {session.timestamp.toLocaleDateString()}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
+            </div>
+          </aside>
 
           {/* Show sidebar toggle when collapsed */}
-          {!showSidebar && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="absolute left-0 top-4 w-8 h-8 p-0 bg-white/80 hover:bg-white"
-              onClick={() => setShowSidebar(true)}
-            >
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          )}
+          <Button
+            variant="ghost"
+            size="sm"
+            className={cn(
+              "absolute left-4 top-4 w-8 h-8 p-0 bg-white/80 hover:bg-white z-20 transition-opacity duration-300",
+              showSidebar && "opacity-0 pointer-events-none"
+            )}
+            onClick={() => setShowSidebar(true)}
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
 
           {/* Main Content */}
-          <div className="flex-1 flex min-h-0">
+          <main className={cn(
+            "flex-1 flex min-h-0 transition-all duration-300",
+            showSidebar ? "ml-80" : "ml-0"
+          )}>
             <div className={cn(
               "flex-1 flex flex-col min-h-0 transition-all duration-300",
               showGraph && "mr-[500px]"
@@ -233,7 +237,7 @@ const Index = () => {
                 <GraphVisualization />
               </div>
             </div>
-          </div>
+          </main>
         </div>
       </div>
     </div>
