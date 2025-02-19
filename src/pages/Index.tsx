@@ -106,7 +106,7 @@ const Index = () => {
       <Background3D />
       
       <div className="relative z-10 h-screen flex flex-col">
-        <Navigation className="h-14 border-b border-[#E38C40]/10 bg-white/80 backdrop-blur-sm" />
+        <Navigation />
         
         <div className="flex-1 flex min-h-0">
           <div className="relative flex">
