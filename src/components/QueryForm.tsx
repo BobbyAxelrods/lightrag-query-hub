@@ -11,7 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { queryAPI } from "@/lib/api";
-import { Loader2, Clock } from "lucide-react";
+import { Loader2, Clock, Zap } from "lucide-react";
 import ReactMarkdown from 'react-markdown';
 
 interface QueryFormProps {
@@ -108,7 +108,7 @@ export function QueryForm({ onQueryComplete }: QueryFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="flex gap-3">
+      <div className="flex gap-2">
         <div className="flex-1">
           <Input
             placeholder="Ask anything about the graph..."
@@ -120,7 +120,7 @@ export function QueryForm({ onQueryComplete }: QueryFormProps) {
         
         <div className="flex items-center gap-2">
           <Select value={mode} onValueChange={(value: "local" | "global" | "hybrid") => setMode(value)}>
-            <SelectTrigger className="w-[120px] bg-white/50 border-[#E38C40]/20 text-[#4A4036] h-12">
+            <SelectTrigger className="w-[100px] bg-white/50 border-[#E38C40]/20 text-[#4A4036] h-12">
               <SelectValue placeholder="Mode" />
             </SelectTrigger>
             <SelectContent>
@@ -129,6 +129,19 @@ export function QueryForm({ onQueryComplete }: QueryFormProps) {
               <SelectItem value="hybrid">Hybrid</SelectItem>
             </SelectContent>
           </Select>
+
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            className={cn(
+              "h-12 w-12 border-[#E38C40]/20",
+              isStreamEnabled && "bg-[#E38C40]/10 text-[#E38C40] border-[#E38C40]"
+            )}
+            onClick={() => setIsStreamEnabled(!isStreamEnabled)}
+          >
+            <Zap className="h-4 w-4" />
+          </Button>
 
           <Button 
             type="submit" 
@@ -144,34 +157,22 @@ export function QueryForm({ onQueryComplete }: QueryFormProps) {
         </div>
       </div>
 
-      <div className="flex items-center justify-between text-sm text-[#4A4036]/70">
-        <div className="flex items-center space-x-2">
-          <Switch
-            id="stream-mode"
-            checked={isStreamEnabled}
-            onCheckedChange={setIsStreamEnabled}
-            className="data-[state=checked]:bg-[#E38C40]"
-          />
-          <label htmlFor="stream-mode">Stream Mode</label>
+      {(contextBuildTime !== null || totalTime !== null) && (
+        <div className="flex items-center justify-end gap-4 text-xs text-[#4A4036]/60">
+          {contextBuildTime !== null && (
+            <div className="flex items-center gap-1">
+              <Clock className="h-3 w-3" />
+              <span>Context: {contextBuildTime.toFixed(2)}s</span>
+            </div>
+          )}
+          {totalTime !== null && (
+            <div className="flex items-center gap-1">
+              <Clock className="h-3 w-3" />
+              <span>Total: {totalTime.toFixed(2)}s</span>
+            </div>
+          )}
         </div>
-
-        {(contextBuildTime !== null || totalTime !== null) && (
-          <div className="flex items-center gap-4">
-            {contextBuildTime !== null && (
-              <div className="flex items-center gap-1">
-                <Clock className="h-3 w-3" />
-                <span>Context: {contextBuildTime.toFixed(2)}s</span>
-              </div>
-            )}
-            {totalTime !== null && (
-              <div className="flex items-center gap-1">
-                <Clock className="h-3 w-3" />
-                <span>Total: {totalTime.toFixed(2)}s</span>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
+      )}
 
       {streamingResponse && (
         <div 
