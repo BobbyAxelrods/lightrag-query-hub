@@ -19,9 +19,11 @@ interface Message {
 
 // Test cases for different types of queries and expected graph structures
 const generateGraphData = (query: string, response: string, messageId: string): GraphData => {
+  console.log("Generating graph data for query:", query); // Debug log
+
   // Test Case 1: Knowledge Query
   if (query.toLowerCase().includes("what") || query.toLowerCase().includes("how")) {
-    return {
+    const graphData = {
       nodes: [
         {
           id: `concept-${messageId}`,
@@ -50,11 +52,13 @@ const generateGraphData = (query: string, response: string, messageId: string): 
         }
       ]
     };
+    console.log("Generated knowledge graph:", graphData); // Debug log
+    return graphData;
   }
   
   // Test Case 2: Action Query
   if (query.toLowerCase().includes("can you") || query.toLowerCase().includes("please")) {
-    return {
+    const graphData = {
       nodes: [
         {
           id: `request-${messageId}`,
@@ -97,10 +101,12 @@ const generateGraphData = (query: string, response: string, messageId: string): 
         }
       ]
     };
+    console.log("Generated action graph:", graphData); // Debug log
+    return graphData;
   }
 
   // Test Case 3: Analysis Query (Default)
-  return {
+  const graphData = {
     nodes: [
       {
         id: `input-${messageId}`,
@@ -144,6 +150,8 @@ const generateGraphData = (query: string, response: string, messageId: string): 
       }
     ]
   };
+  console.log("Generated analysis graph:", graphData); // Debug log
+  return graphData;
 };
 
 const Index = () => {
@@ -163,6 +171,7 @@ const Index = () => {
     
     // Generate graph data based on the query type
     const newGraphData = generateGraphData(query, response, newMessage.id);
+    console.log("Setting new graph data:", newGraphData); // Debug log
     setCurrentGraphData(newGraphData);
   };
 
