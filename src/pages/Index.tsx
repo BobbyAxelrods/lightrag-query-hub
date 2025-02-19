@@ -16,10 +16,31 @@ interface QueryHistory {
   timestamp: Date;
 }
 
+const testQueries: QueryHistory[] = [
+  {
+    id: "1",
+    query: "What are the connections between Node A and Node B?",
+    response: "Based on the graph analysis, Node A has a direct connection to Node B through a 'RELATES_TO' relationship. Additionally, there are indirect paths through intermediate nodes.",
+    timestamp: new Date(Date.now() - 3600000) // 1 hour ago
+  },
+  {
+    id: "2",
+    query: "Show me all nodes connected to Node C",
+    response: "Node C has direct connections to nodes D and E through 'DEPENDS_ON' relationships. There are also several second-degree connections through Node D.",
+    timestamp: new Date(Date.now() - 1800000) // 30 minutes ago
+  },
+  {
+    id: "3",
+    query: "What is the shortest path between Node A and Node E?",
+    response: "The shortest path from Node A to Node E is: A -> B -> D -> E, with a total of 3 hops.",
+    timestamp: new Date(Date.now() - 900000) // 15 minutes ago
+  }
+];
+
 const Index = () => {
   const [showSidebar, setShowSidebar] = useState(true);
-  const [queryHistory, setQueryHistory] = useState<QueryHistory[]>([]);
-  const [selectedQueryId, setSelectedQueryId] = useState<string | null>(null);
+  const [queryHistory, setQueryHistory] = useState<QueryHistory[]>(testQueries); // Initialize with test data
+  const [selectedQueryId, setSelectedQueryId] = useState<string | null>("3"); // Show the last test query by default
 
   const handleQuerySubmit = (query: string, response: string) => {
     const newQuery: QueryHistory = {
