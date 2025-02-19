@@ -1,9 +1,8 @@
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch";
 import {
   Select,
   SelectContent,
@@ -13,29 +12,21 @@ import {
 } from "@/components/ui/select";
 import { queryAPI } from "@/lib/api";
 import { Loader2, Clock, Zap } from "lucide-react";
-import ReactMarkdown from 'react-markdown';
 import { cn } from "@/lib/utils";
 
 interface QueryFormProps {
   onQueryComplete?: (query: string, response: string) => void;
+  onStreamUpdate?: (partialResponse: string) => void;
 }
 
-export function QueryForm({ onQueryComplete }: QueryFormProps) {
+export function QueryForm({ onQueryComplete, onStreamUpdate }: QueryFormProps) {
   const [query, setQuery] = useState("");
   const [mode, setMode] = useState<"local" | "global" | "hybrid">("hybrid");
   const [isLoading, setIsLoading] = useState(false);
-  const [streamingResponse, setStreamingResponse] = useState<string>("");
   const [contextBuildTime, setContextBuildTime] = useState<number | null>(null);
   const [totalTime, setTotalTime] = useState<number | null>(null);
   const [isStreamEnabled, setIsStreamEnabled] = useState(true);
-  const responseRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
-
-  useEffect(() => {
-    if (responseRef.current) {
-      responseRef.current.scrollTop = responseRef.current.scrollHeight;
-    }
-  }, [streamingResponse]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,39 +40,35 @@ export function QueryForm({ onQueryComplete }: QueryFormProps) {
     }
 
     setIsLoading(true);
-    setStreamingResponse("");
     setContextBuildTime(null);
     setTotalTime(null);
 
     const startTime = performance.now();
     let contextBuildEndTime: number | null = null;
+    let fullResponse = "";
 
     try {
-      let isFirstChunk = true;
-      let fullResponse = "";
-      
       await queryAPI({
         query,
         mode,
         stream: isStreamEnabled
       }, (chunk: string) => {
         if (isStreamEnabled) {
-          if (isFirstChunk) {
+          if (fullResponse === "") {
             contextBuildEndTime = performance.now();
             setContextBuildTime((contextBuildEndTime - startTime) / 1000);
-            isFirstChunk = false;
           }
-          if (chunk.trim()) {
-            setStreamingResponse(prev => {
-              fullResponse = prev + chunk;
-              return fullResponse;
-            });
+          fullResponse += chunk;
+          if (onStreamUpdate) {
+            onStreamUpdate(fullResponse);
           }
         } else {
           fullResponse = chunk;
-          setStreamingResponse(chunk);
           contextBuildEndTime = performance.now();
           setContextBuildTime((contextBuildEndTime - startTime) / 1000);
+          if (onStreamUpdate) {
+            onStreamUpdate(fullResponse);
+          }
         }
       });
 
@@ -92,6 +79,7 @@ export function QueryForm({ onQueryComplete }: QueryFormProps) {
         onQueryComplete(query, fullResponse);
       }
 
+      setQuery("");
       toast({
         title: "Success",
         description: "Query processed successfully",
@@ -173,17 +161,6 @@ export function QueryForm({ onQueryComplete }: QueryFormProps) {
               <span>Total: {totalTime.toFixed(2)}s</span>
             </div>
           )}
-        </div>
-      )}
-
-      {streamingResponse && (
-        <div 
-          ref={responseRef}
-          className="mt-4 p-6 bg-[#F5F5F3]/90 rounded-lg max-h-[200px] overflow-y-auto scroll-smooth border border-[#E38C40]/20"
-        >
-          <ReactMarkdown className="prose prose-sm max-w-none text-[#4A4036]">
-            {streamingResponse}
-          </ReactMarkdown>
         </div>
       )}
     </form>

@@ -11,12 +11,14 @@ import { ChevronRight } from "lucide-react";
 import { GraphData } from "@/components/graph/types";
 import { getGraphDataFromQuery } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
+import ReactMarkdown from 'react-markdown';
 
 interface Message {
   id: string;
   query: string;
   response: string;
   timestamp: Date;
+  streaming?: boolean;
 }
 
 const Index = () => {
@@ -25,20 +27,45 @@ const Index = () => {
   const [currentGraphData, setCurrentGraphData] = useState<GraphData | null>(null);
   const { toast } = useToast();
 
+  const handleStreamUpdate = (partialResponse: string) => {
+    setMessages(prev => {
+      const lastMessage = prev[prev.length - 1];
+      if (lastMessage && lastMessage.streaming) {
+        return [
+          ...prev.slice(0, -1),
+          { ...lastMessage, response: partialResponse }
+        ];
+      }
+      return prev;
+    });
+  };
+
   const handleQuerySubmit = async (query: string, response: string) => {
+    // Create new message
     const newMessage: Message = {
       id: Date.now().toString(),
       query,
-      response,
-      timestamp: new Date()
+      response: "",
+      timestamp: new Date(),
+      streaming: true
     };
 
+    // Add the new message immediately
     setMessages(prev => [...prev, newMessage]);
-    
+
     try {
-      // Fetch updated graph data from local JSON file
+      // Update message with final response and remove streaming flag
+      setMessages(prev => {
+        const last = prev[prev.length - 1];
+        if (last.id === newMessage.id) {
+          return [...prev.slice(0, -1), { ...last, response, streaming: false }];
+        }
+        return prev;
+      });
+
+      // Fetch updated graph data
       const graphData = await getGraphDataFromQuery();
-      console.log("Updated graph data:", graphData); // Debug log to verify data structure
+      console.log("Updated graph data:", graphData);
       setCurrentGraphData(graphData);
       
       toast({
@@ -97,7 +124,9 @@ const Index = () => {
                         <div className="flex flex-col max-w-3xl">
                           <div className="bg-white rounded-lg p-4 shadow-sm">
                             <p className="text-sm font-medium mb-2">Response</p>
-                            <p className="text-[#4A4036]">{message.response}</p>
+                            <ReactMarkdown className="prose prose-sm max-w-none text-[#4A4036]">
+                              {message.response}
+                            </ReactMarkdown>
                           </div>
                         </div>
                       </div>
@@ -107,7 +136,10 @@ const Index = () => {
 
                 <div className="absolute bottom-0 left-0 right-0 p-4 bg-white/95 backdrop-blur-sm border-t border-[#E38C40]/10">
                   <div className="max-w-3xl mx-auto w-full">
-                    <QueryForm onQueryComplete={handleQuerySubmit} />
+                    <QueryForm 
+                      onQueryComplete={handleQuerySubmit}
+                      onStreamUpdate={handleStreamUpdate}
+                    />
                   </div>
                 </div>
               </div>
@@ -118,7 +150,7 @@ const Index = () => {
               !showGraph && "translate-x-full"
             )}>
               <div className="h-full p-4">
-                {currentGraphData && (
+                {currentGraphData && currentGraphData.nodes && currentGraphData.nodes.length > 0 && (
                   <GraphVisualization graphData={currentGraphData} />
                 )}
               </div>
