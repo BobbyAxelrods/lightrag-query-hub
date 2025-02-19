@@ -31,9 +31,10 @@ export function SimpleNetworkGraph({
     });
   };
 
-  // Initialize network only once
   useEffect(() => {
     if (!containerRef.current || !data || isInitializedRef.current) return;
+
+    console.log("Initializing network with data:", data);
 
     const options = {
       nodes: {
@@ -54,20 +55,18 @@ export function SimpleNetworkGraph({
         }
       },
       edges: {
-        font: {
-          size: 12,
-          align: 'middle',
-          multi: true
-        },
         arrows: {
           to: { enabled: true, scaleFactor: 0.5 }
         },
+        font: {
+          size: 12,
+          align: 'middle'
+        },
+        color: { color: '#666666', opacity: 0.8 },
         smooth: {
           enabled: true,
-          type: 'continuous',
-          roundness: 0.5
-        },
-        length: 250
+          type: 'continuous'
+        }
       },
       physics: {
         enabled: true,
@@ -75,32 +74,27 @@ export function SimpleNetworkGraph({
         forceAtlas2Based: {
           gravitationalConstant: -50,
           centralGravity: 0.01,
-          springLength: 250,
+          springLength: 200,
           springConstant: 0.08,
           damping: 0.4,
-          avoidOverlap: 1
+          avoidOverlap: 0.5
         },
         stabilization: {
           enabled: true,
-          iterations: 200,
-          updateInterval: 50,
-          fit: true
+          iterations: 100,
+          updateInterval: 25
         }
       },
       interaction: {
         hover: true,
+        tooltipDelay: 300,
         hideEdgesOnDrag: true,
-        navigationButtons: true,
-        keyboard: true,
-        multiselect: false,
-        dragNodes: true,
-        dragView: true,
-        zoomView: true
+        navigationButtons: true
       }
     };
 
-    networkRef.current = new Network(containerRef.current, {nodes: [], edges: []}, options);
-
+    networkRef.current = new Network(containerRef.current, { nodes: [], edges: [] }, options);
+    
     networkRef.current.on('click', function(params) {
       if (params.nodes.length > 0) {
         onNodeClick(params.nodes[0]);
@@ -122,11 +116,10 @@ export function SimpleNetworkGraph({
     };
   }, []);
 
-  // Update data separately
   useEffect(() => {
     if (!networkRef.current || !data) return;
 
-    console.log('Updating graph data:', data);
+    console.log("Updating network data:", data);
 
     const filteredNodes = data.nodes
       .filter(node => !hideIsolatedNodes || data.edges.some(edge => 
@@ -135,8 +128,8 @@ export function SimpleNetworkGraph({
       .map(node => ({
         id: node.id,
         label: showLabels ? node.label : '',
-        title: node.properties.description,
-        value: parseInt(node.properties.rank),
+        title: node.label,
+        value: node.properties.rank,
         color: {
           background: '#ffffff',
           border: '#E38C40',
@@ -147,25 +140,33 @@ export function SimpleNetworkGraph({
         }
       }));
 
-    const visData = {
-      nodes: filteredNodes,
-      edges: data.edges.map(edge => ({
-        from: edge.from,
-        to: edge.to,
-        label: showLabels ? edge.label.split('<SEP>')[0] : '',
-        title: edge.label,
-        value: parseFloat(edge.properties.weight),
-        length: 250,
-        width: Math.max(1, Math.min(5, edge.properties.weight / 10)),
-        color: {
-          color: '#666666',
-          opacity: 0.5
-        }
-      }))
-    };
+    const visEdges = data.edges.map(edge => ({
+      from: edge.from,
+      to: edge.to,
+      label: showLabels ? edge.label : '',
+      title: edge.label,
+      value: edge.properties.weight,
+      arrows: 'to',
+      color: {
+        color: '#666666',
+        opacity: 0.8
+      },
+      smooth: {
+        enabled: true,
+        type: 'continuous'
+      }
+    }));
 
-    console.log('Processed graph data:', visData);
-    networkRef.current.setData(visData);
+    console.log("Processed network data:", {
+      nodes: filteredNodes,
+      edges: visEdges
+    });
+
+    networkRef.current.setData({
+      nodes: filteredNodes,
+      edges: visEdges
+    });
+
     setTimeout(() => networkRef.current?.fit(), 50);
   }, [data, showLabels, hideIsolatedNodes]);
 
