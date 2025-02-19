@@ -38,7 +38,7 @@ export function GraphVisualization({ graphData }: GraphVisualizationProps) {
   };
 
   // Add initial test data if no graph data is provided
-  const testData: GraphData = {
+  const displayData: GraphData = {
     nodes: [
       {
         id: "test-1",
@@ -63,12 +63,16 @@ export function GraphVisualization({ graphData }: GraphVisualizationProps) {
       {
         from: "test-1",
         to: "test-2",
-        label: "TEST_RELATION"
+        label: "TEST_RELATION",
+        properties: {
+          weight: 1,
+          type: "test"
+        }
       }
     ]
   };
 
-  const displayData = graphData?.nodes?.length ? graphData : testData;
+  const finalData = graphData?.nodes?.length ? graphData : displayData;
 
   return (
     <div className="w-full h-full flex flex-col">
@@ -81,10 +85,10 @@ export function GraphVisualization({ graphData }: GraphVisualizationProps) {
         onToggleIsolatedNodes={() => setHideIsolatedNodes(!hideIsolatedNodes)}
       />
 
-      {showGraph && displayData && (
+      {showGraph && finalData && (
         <div className="flex-1 mt-4 bg-white/90 backdrop-blur-sm rounded-xl shadow-xl p-4">
           <SimpleNetworkGraph 
-            data={displayData}
+            data={finalData}
             onNodeClick={handleNodeClick}
             showLabels={showLabels}
             hideIsolatedNodes={hideIsolatedNodes}

@@ -32,12 +32,20 @@ export const testGraphData: GraphData = {
     {
       from: "1",
       to: "2",
-      label: "RELATES_TO"
+      label: "RELATES_TO",
+      properties: {
+        weight: 1,
+        type: "relation"
+      }
     },
     {
       from: "2",
       to: "3",
-      label: "DEPENDS_ON"
+      label: "DEPENDS_ON",
+      properties: {
+        weight: 0.8,
+        type: "dependency"
+      }
     }
   ]
 };

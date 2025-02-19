@@ -122,6 +122,7 @@ export interface GraphEdge {
   from: string;
   to: string;
   label: string;
+  properties: Record<string, any>;
 }
 
 export interface GraphData {
