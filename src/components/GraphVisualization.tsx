@@ -29,6 +29,8 @@ export function GraphVisualization({ graphData }: GraphVisualizationProps) {
     }
   };
 
+  console.log('GraphVisualization received data:', graphData); // Debug log
+
   return (
     <div className="w-full h-full flex flex-col">
       <GraphControls
@@ -40,7 +42,7 @@ export function GraphVisualization({ graphData }: GraphVisualizationProps) {
         onToggleIsolatedNodes={() => setHideIsolatedNodes(!hideIsolatedNodes)}
       />
 
-      {showGraph && (
+      {showGraph && graphData && graphData.nodes.length > 0 && (
         <div className="flex-1 mt-4 bg-white/90 backdrop-blur-sm rounded-xl shadow-xl p-4">
           <SimpleNetworkGraph 
             data={graphData}

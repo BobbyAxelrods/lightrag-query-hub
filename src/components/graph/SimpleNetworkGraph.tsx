@@ -81,7 +81,7 @@ export function SimpleNetworkGraph({
           enabled: true,
           iterations: 100,
           updateInterval: 50,
-          fit: true // Enable initial fit
+          fit: true
         },
         timestep: 0.3
       },
@@ -97,9 +97,7 @@ export function SimpleNetworkGraph({
         multiselect: false,
         dragNodes: true,
         dragView: true,
-        zoomView: true,
-        minZoom: 0.1, // Allow more zoom out
-        maxZoom: 2    // Limit zoom in
+        zoomView: true
       }
     };
 
@@ -112,28 +110,7 @@ export function SimpleNetworkGraph({
     });
 
     networkRef.current.once('stabilized', function() {
-      networkRef.current?.setOptions({ 
-        physics: {
-          enabled: true,
-          solver: 'forceAtlas2Based',
-          forceAtlas2Based: {
-            gravitationalConstant: -20,
-            centralGravity: 0.002,
-            springLength: 250,
-            springConstant: 0.02,
-            damping: 0.9
-          },
-          timestep: 0.2
-        }
-      });
-      // Zoom out slightly after stabilization
-      networkRef.current?.moveTo({
-        scale: 0.5,
-        animation: {
-          duration: 1000,
-          easingFunction: 'easeOutCubic'
-        }
-      });
+      networkRef.current?.fit();
     });
 
     isInitializedRef.current = true;
@@ -151,14 +128,12 @@ export function SimpleNetworkGraph({
   useEffect(() => {
     if (!networkRef.current || !data) return;
 
-    const connectedNodeIds = new Set();
-    data.edges.forEach(edge => {
-      connectedNodeIds.add(edge.from);
-      connectedNodeIds.add(edge.to);
-    });
+    console.log('Updating graph data:', data); // Debug log
 
     const filteredNodes = data.nodes
-      .filter(node => !hideIsolatedNodes || connectedNodeIds.has(node.id))
+      .filter(node => !hideIsolatedNodes || data.edges.some(edge => 
+        edge.from === node.id || edge.to === node.id
+      ))
       .map(node => ({
         id: node.id,
         label: showLabels ? node.label : '',
@@ -189,7 +164,9 @@ export function SimpleNetworkGraph({
       }))
     };
 
+    console.log('Processed graph data:', visData); // Debug log
     networkRef.current.setData(visData);
+    setTimeout(() => networkRef.current?.fit(), 50);
   }, [data, showLabels, hideIsolatedNodes]);
 
   return (
