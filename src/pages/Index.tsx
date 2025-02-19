@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Navigation } from "@/components/Navigation";
 import { QueryForm } from "@/components/QueryForm";
 import { GraphVisualization } from "@/components/GraphVisualization";
@@ -25,12 +25,6 @@ const Index = () => {
   const [currentGraphData, setCurrentGraphData] = useState<GraphData | null>(null);
   const { toast } = useToast();
 
-  useEffect(() => {
-    const initialQuery = "What is Graph RAG?";
-    const initialResponse = "Graph RAG is a system that uses graph-based retrieval augmented generation for processing queries.";
-    handleQuerySubmit(initialQuery, initialResponse);
-  }, []);
-
   const handleQuerySubmit = async (query: string, response: string) => {
     const newMessage: Message = {
       id: Date.now().toString(),
@@ -43,8 +37,10 @@ const Index = () => {
     
     try {
       const graphData = await getGraphDataFromQuery(query);
+      console.log("Received graph data:", graphData); // Debug log to verify data
       setCurrentGraphData(graphData);
     } catch (error) {
+      console.error("Error fetching graph data:", error);
       toast({
         title: "Error",
         description: "Failed to fetch graph data",
