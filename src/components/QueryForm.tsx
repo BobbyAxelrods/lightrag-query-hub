@@ -1,6 +1,5 @@
 
-import { useState, useRef } from "react";
-import { useToast } from "@/hooks/use-toast";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -10,9 +9,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { queryAPI } from "@/lib/api";
-import { Loader2, Clock, Zap } from "lucide-react";
+import { Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { queryAPI } from "@/lib/api";
 
 interface QueryFormProps {
   onQueryComplete?: (query: string, response: string) => void;
@@ -23,28 +22,13 @@ export function QueryForm({ onQueryComplete, onStreamUpdate }: QueryFormProps) {
   const [query, setQuery] = useState("");
   const [mode, setMode] = useState<"local" | "global" | "hybrid">("hybrid");
   const [isLoading, setIsLoading] = useState(false);
-  const [contextBuildTime, setContextBuildTime] = useState<number | null>(null);
-  const [totalTime, setTotalTime] = useState<number | null>(null);
   const [isStreamEnabled, setIsStreamEnabled] = useState(true);
-  const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!query.trim()) {
-      toast({
-        title: "Error",
-        description: "Please enter a query",
-        variant: "destructive",
-      });
-      return;
-    }
+    if (!query.trim()) return;
 
     setIsLoading(true);
-    setContextBuildTime(null);
-    setTotalTime(null);
-
-    const startTime = performance.now();
-    let contextBuildEndTime: number | null = null;
     let fullResponse = "";
 
     try {
@@ -53,44 +37,19 @@ export function QueryForm({ onQueryComplete, onStreamUpdate }: QueryFormProps) {
         mode,
         stream: isStreamEnabled
       }, (chunk: string) => {
-        if (isStreamEnabled) {
-          if (fullResponse === "") {
-            contextBuildEndTime = performance.now();
-            setContextBuildTime((contextBuildEndTime - startTime) / 1000);
-          }
-          fullResponse += chunk;
-          if (onStreamUpdate) {
-            onStreamUpdate(fullResponse);
-          }
-        } else {
-          fullResponse = chunk;
-          contextBuildEndTime = performance.now();
-          setContextBuildTime((contextBuildEndTime - startTime) / 1000);
-          if (onStreamUpdate) {
-            onStreamUpdate(fullResponse);
-          }
+        fullResponse += chunk;
+        if (onStreamUpdate) {
+          onStreamUpdate(fullResponse);
         }
       });
-
-      const endTime = performance.now();
-      setTotalTime((endTime - startTime) / 1000);
 
       if (onQueryComplete) {
         onQueryComplete(query, fullResponse);
       }
-
+      
       setQuery("");
-      toast({
-        title: "Success",
-        description: "Query processed successfully",
-      });
-    } catch (error: any) {
+    } catch (error) {
       console.error("Query Error:", error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to process query",
-        variant: "destructive",
-      });
     } finally {
       setIsLoading(false);
     }
@@ -138,31 +97,10 @@ export function QueryForm({ onQueryComplete, onStreamUpdate }: QueryFormProps) {
             className="bg-[#E38C40] hover:bg-[#F9B054] text-white h-12 px-6"
             disabled={isLoading}
           >
-            {isLoading ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              "Send"
-            )}
+            {isLoading ? "Sending..." : "Send"}
           </Button>
         </div>
       </div>
-
-      {(contextBuildTime !== null || totalTime !== null) && (
-        <div className="flex items-center justify-end gap-4 text-xs text-[#4A4036]/60">
-          {contextBuildTime !== null && (
-            <div className="flex items-center gap-1">
-              <Clock className="h-3 w-3" />
-              <span>Context: {contextBuildTime.toFixed(2)}s</span>
-            </div>
-          )}
-          {totalTime !== null && (
-            <div className="flex items-center gap-1">
-              <Clock className="h-3 w-3" />
-              <span>Total: {totalTime.toFixed(2)}s</span>
-            </div>
-          )}
-        </div>
-      )}
     </form>
   );
 }

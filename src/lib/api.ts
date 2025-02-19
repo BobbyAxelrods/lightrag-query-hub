@@ -66,6 +66,7 @@ export const queryAPI = async (params: QueryRequest, onChunk?: (chunk: string) =
       if (!reader) throw new Error("No reader available");
 
       const decoder = new TextDecoder();
+      let accumulatedResponse = "";
       
       while (true) {
         const { done, value } = await reader.read();
@@ -75,8 +76,9 @@ export const queryAPI = async (params: QueryRequest, onChunk?: (chunk: string) =
         }
         
         const chunk = decoder.decode(value);
+        accumulatedResponse += chunk;
         if (onChunk) {
-          onChunk(chunk);
+          onChunk(accumulatedResponse);
         }
       }
     } else {
@@ -186,32 +188,33 @@ export const getGraphDataFromQuery = async (): Promise<GraphData> => {
   try {
     const response = await api.get("/graph_context");
     const data = response.data;
-    console.log("Loaded graph data from API:", data); // Debug log
+    console.log("Loaded graph data from API:", data);
     
     // Transform the API response data into GraphData format
-    return {
-      nodes: data.nodes.map((node: LocalGraphNode) => ({
-        id: node.id,
-        label: node.entity.replace(/"/g, ''),
-        properties: {
-          type: node.type.replace(/"/g, ''),
-          description: node.description.replace(/"/g, ''),
-          rank: parseInt(node.rank),
-          content: node.description.replace(/"/g, '')
-        }
-      })),
-      edges: data.edges.map((edge: LocalGraphEdge) => ({
-        from: edge.source,
-        to: edge.target,
-        label: edge.description.replace(/"/g, ''),
-        properties: {
-          weight: parseFloat(edge.weight),
-          rank: parseInt(edge.rank),
-          keywords: edge.keywords.replace(/"/g, ''),
-          created_at: edge.created_at
-        }
-      }))
-    };
+    const nodes = data.nodes.map((node: LocalGraphNode) => ({
+      id: node.id,
+      label: node.entity.replace(/"/g, ''),
+      properties: {
+        type: node.type.replace(/"/g, ''),
+        description: node.description.replace(/"/g, ''),
+        rank: parseInt(node.rank),
+        content: node.description.replace(/"/g, '')
+      }
+    }));
+
+    const edges = data.edges.map((edge: LocalGraphEdge) => ({
+      from: edge.source,
+      to: edge.target,
+      label: edge.description.replace(/"/g, ''),
+      properties: {
+        weight: parseFloat(edge.weight),
+        rank: parseInt(edge.rank),
+        keywords: edge.keywords.replace(/"/g, ''),
+        created_at: edge.created_at
+      }
+    }));
+
+    return { nodes, edges };
   } catch (error) {
     console.error("Failed to fetch graph data:", error);
     throw error;
