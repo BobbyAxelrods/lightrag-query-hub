@@ -102,51 +102,48 @@ const Index = () => {
   const activeSession = sessions.find(s => s.id === activeSessionId);
 
   return (
-    <div className="relative h-screen overflow-hidden text-[#4A4036]">
+    <div className="relative h-screen overflow-hidden text-[#4A4036] bg-[#F8F8F8]">
       <Background3D />
       
       <div className="relative z-10 h-screen flex flex-col">
-        <Navigation />
+        <Navigation className="h-14 border-b border-[#E38C40]/10 bg-white/80 backdrop-blur-sm" />
         
         <div className="flex-1 flex min-h-0">
           <div className="relative flex">
             <div 
               className={cn(
-                "w-80 bg-[#F5F5F3]/95 backdrop-blur-sm border-r border-[#E38C40]/20 transition-all duration-300 flex flex-col",
+                "w-80 bg-white/80 backdrop-blur-sm border-r border-[#E38C40]/10 transition-all duration-300 flex flex-col",
                 !showSidebar && "-translate-x-[calc(100%-2rem)]"
               )}
             >
-              <div className="p-4 border-b border-[#E38C40]/20 flex-shrink-0">
+              <div className="p-4 border-b border-[#E38C40]/10 flex-shrink-0">
                 <Button 
                   variant="outline" 
-                  className="w-full justify-start"
+                  className="w-full justify-start text-[#4A4036]"
                   onClick={createNewSession}
                 >
                   <Plus className="w-4 h-4 mr-2" />
-                  New Session
+                  New Chat
                 </Button>
               </div>
               
               <ScrollArea className="flex-1">
-                <div className="p-4 space-y-4">
+                <div className="p-2 space-y-1">
                   {sessions.map((session) => (
                     <div
                       key={session.id}
                       className={cn(
-                        "p-4 rounded-lg cursor-pointer hover:bg-[#E38C40]/10 transition-colors",
-                        activeSessionId === session.id && "bg-[#E38C40]/20"
+                        "p-3 rounded-lg cursor-pointer hover:bg-[#E38C40]/5 transition-colors",
+                        activeSessionId === session.id && "bg-[#E38C40]/10"
                       )}
                       onClick={() => setActiveSessionId(session.id)}
                     >
-                      <div className="flex items-center justify-between mb-2">
-                        <h3 className="font-medium">{session.name}</h3>
-                        <span className="text-xs text-[#4A4036]/60">
+                      <div className="flex items-center justify-between">
+                        <h3 className="font-medium truncate">{session.name}</h3>
+                        <span className="text-xs text-[#4A4036]/60 ml-2 flex-shrink-0">
                           {session.timestamp.toLocaleDateString()}
                         </span>
                       </div>
-                      <p className="text-sm text-[#4A4036]/80 truncate">
-                        {session.messages.length} messages
-                      </p>
                     </div>
                   ))}
                 </div>
@@ -155,7 +152,7 @@ const Index = () => {
               <Button
                 variant="ghost"
                 size="sm"
-                className="absolute -right-8 top-4 w-8 h-8 p-0 bg-[#F5F5F3]/95"
+                className="absolute -right-8 top-4 w-8 h-8 p-0 bg-white/80 hover:bg-white"
                 onClick={() => setShowSidebar(!showSidebar)}
               >
                 {showSidebar ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
@@ -168,9 +165,9 @@ const Index = () => {
               "flex-1 flex flex-col min-h-0 transition-all duration-300",
               showGraph && "mr-[500px]"
             )}>
-              <div className="p-4 border-b border-[#E38C40]/20 flex items-center gap-4 flex-shrink-0">
-                <h1 className="text-xl font-semibold flex-1">
-                  {activeSession?.name || "Graph Query Assistant"}
+              <div className="h-14 px-4 border-b border-[#E38C40]/10 flex items-center gap-4 flex-shrink-0 bg-white/80 backdrop-blur-sm">
+                <h1 className="text-lg font-medium flex-1">
+                  {activeSession?.name || "New Chat"}
                 </h1>
                 <Button
                   variant="ghost"
@@ -183,34 +180,40 @@ const Index = () => {
               </div>
 
               <div className="flex-1 flex flex-col min-h-0 relative">
-                <ScrollArea className="flex-1 pb-[280px]">
-                  <div className="p-4 space-y-8">
+                <ScrollArea className="flex-1 pb-[200px]">
+                  <div className="max-w-3xl mx-auto w-full p-4 space-y-6">
                     {activeSession?.messages.map((message) => (
-                      <div key={message.id} className="space-y-4">
-                        <div className="bg-[#F5F5F3]/80 backdrop-blur-sm rounded-lg p-6">
-                          <p className="font-medium mb-2">Query:</p>
-                          <p>{message.query}</p>
-                          <p className="text-xs text-[#4A4036]/60 mt-2">
-                            {message.timestamp.toLocaleString()}
-                          </p>
+                      <div key={message.id} className="space-y-6">
+                        <div className="flex flex-col max-w-3xl">
+                          <div className="bg-[#F5F5F3] rounded-lg p-4 shadow-sm">
+                            <p className="text-sm font-medium mb-2">Query</p>
+                            <p className="text-[#4A4036]">{message.query}</p>
+                            <p className="text-xs text-[#4A4036]/60 mt-2">
+                              {message.timestamp.toLocaleTimeString()}
+                            </p>
+                          </div>
                         </div>
-                        <div className="bg-[#F5F5F3]/80 backdrop-blur-sm rounded-lg p-6">
-                          <p className="font-medium mb-2">Response:</p>
-                          <p>{message.response}</p>
+                        <div className="flex flex-col max-w-3xl">
+                          <div className="bg-white rounded-lg p-4 shadow-sm">
+                            <p className="text-sm font-medium mb-2">Response</p>
+                            <p className="text-[#4A4036]">{message.response}</p>
+                          </div>
                         </div>
                       </div>
                     ))}
                   </div>
                 </ScrollArea>
 
-                <div className="absolute bottom-0 left-0 right-0 p-4 bg-white/80 backdrop-blur-sm border-t border-[#E38C40]/20">
-                  <QueryForm onQueryComplete={handleQuerySubmit} />
+                <div className="absolute bottom-0 left-0 right-0 p-4 bg-white/95 backdrop-blur-sm border-t border-[#E38C40]/10">
+                  <div className="max-w-3xl mx-auto w-full">
+                    <QueryForm onQueryComplete={handleQuerySubmit} />
+                  </div>
                 </div>
               </div>
             </div>
 
             <div className={cn(
-              "fixed right-0 top-[4rem] bottom-0 w-[500px] bg-[#F5F5F3]/95 backdrop-blur-sm border-l border-[#E38C40]/20 transition-all duration-300",
+              "fixed right-0 top-14 bottom-0 w-[500px] bg-white/80 backdrop-blur-sm border-l border-[#E38C40]/10 transition-all duration-300",
               !showGraph && "translate-x-full"
             )}>
               {activeSession?.messages.length ? (
