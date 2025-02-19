@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -15,7 +14,11 @@ import { queryAPI } from "@/lib/api";
 import { Loader2, Clock } from "lucide-react";
 import ReactMarkdown from 'react-markdown';
 
-export function QueryForm() {
+interface QueryFormProps {
+  onQueryComplete?: (query: string, response: string) => void;
+}
+
+export function QueryForm({ onQueryComplete }: QueryFormProps) {
   const [query, setQuery] = useState("");
   const [mode, setMode] = useState<"local" | "global" | "hybrid">("hybrid");
   const [isLoading, setIsLoading] = useState(false);
@@ -53,6 +56,7 @@ export function QueryForm() {
 
     try {
       let isFirstChunk = true;
+      let fullResponse = "";
       
       await queryAPI({
         query,
@@ -66,10 +70,13 @@ export function QueryForm() {
             isFirstChunk = false;
           }
           if (chunk.trim()) {
-            setStreamingResponse(prev => prev + chunk);
+            setStreamingResponse(prev => {
+              fullResponse = prev + chunk;
+              return fullResponse;
+            });
           }
         } else {
-          // For non-streaming response, set the entire response at once
+          fullResponse = chunk;
           setStreamingResponse(chunk);
           contextBuildEndTime = performance.now();
           setContextBuildTime((contextBuildEndTime - startTime) / 1000);
@@ -78,6 +85,10 @@ export function QueryForm() {
 
       const endTime = performance.now();
       setTotalTime((endTime - startTime) / 1000);
+
+      if (onQueryComplete) {
+        onQueryComplete(query, fullResponse);
+      }
 
       toast({
         title: "Success",
