@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Navigation } from "@/components/Navigation";
 import { QueryForm } from "@/components/QueryForm";
@@ -108,15 +107,14 @@ const Index = () => {
       <div className="relative z-10 h-screen flex flex-col">
         <Navigation />
         
-        <div className="flex-1 flex">
-          {/* Sidebar */}
+        <div className="flex-1 flex min-h-0">
           <div 
             className={cn(
-              "w-80 bg-[#F5F5F3]/95 backdrop-blur-sm border-r border-[#E38C40]/20 transition-all duration-300",
+              "w-80 bg-[#F5F5F3]/95 backdrop-blur-sm border-r border-[#E38C40]/20 transition-all duration-300 flex flex-col",
               !showSidebar && "-translate-x-full"
             )}
           >
-            <div className="p-4 border-b border-[#E38C40]/20">
+            <div className="p-4 border-b border-[#E38C40]/20 flex-shrink-0">
               <Button 
                 variant="outline" 
                 className="w-full justify-start"
@@ -127,7 +125,7 @@ const Index = () => {
               </Button>
             </div>
             
-            <ScrollArea className="h-[calc(100vh-8rem)]">
+            <ScrollArea className="flex-1">
               <div className="p-4 space-y-4">
                 {sessions.map((session) => (
                   <div
@@ -153,9 +151,8 @@ const Index = () => {
             </ScrollArea>
           </div>
 
-          {/* Main Content */}
-          <div className="flex-1 flex flex-col h-full">
-            <div className="p-4 border-b border-[#E38C40]/20 flex items-center gap-4">
+          <div className="flex-1 flex flex-col min-h-0">
+            <div className="p-4 border-b border-[#E38C40]/20 flex items-center gap-4 flex-shrink-0">
               <Button
                 variant="ghost"
                 size="sm"
@@ -170,7 +167,7 @@ const Index = () => {
             </div>
 
             <ScrollArea className="flex-1">
-              <div className="container max-w-4xl mx-auto p-4 space-y-8">
+              <div className="p-4 space-y-8">
                 {activeSession?.messages.map((message) => (
                   <div key={message.id} className="space-y-4">
                     <div className="bg-[#F5F5F3]/80 backdrop-blur-sm rounded-lg p-6">
@@ -187,7 +184,6 @@ const Index = () => {
                   </div>
                 ))}
 
-                {/* Show graph only for the latest message */}
                 {activeSession?.messages.length ? (
                   <GraphVisualization />
                 ) : null}
