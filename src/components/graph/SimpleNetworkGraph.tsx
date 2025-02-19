@@ -42,7 +42,8 @@ export function SimpleNetworkGraph({
         font: {
           size: 14,
           color: '#333333',
-          face: 'Inter'
+          face: 'Inter',
+          multi: true
         },
         borderWidth: 2,
         shadow: {
@@ -55,7 +56,8 @@ export function SimpleNetworkGraph({
       edges: {
         font: {
           size: 12,
-          align: 'middle'
+          align: 'middle',
+          multi: true
         },
         arrows: {
           to: { enabled: true, scaleFactor: 0.5 }
@@ -64,36 +66,32 @@ export function SimpleNetworkGraph({
           enabled: true,
           type: 'continuous',
           roundness: 0.5
-        }
+        },
+        length: 250
       },
       physics: {
         enabled: true,
         solver: 'forceAtlas2Based',
         forceAtlas2Based: {
-          gravitationalConstant: -30,
-          centralGravity: 0.005,
+          gravitationalConstant: -50,
+          centralGravity: 0.01,
           springLength: 250,
-          springConstant: 0.04,
-          damping: 0.8,
-          avoidOverlap: 0.5
+          springConstant: 0.08,
+          damping: 0.4,
+          avoidOverlap: 1
         },
         stabilization: {
           enabled: true,
-          iterations: 100,
+          iterations: 200,
           updateInterval: 50,
           fit: true
-        },
-        timestep: 0.3
-      },
-      layout: {
-        improvedLayout: true,
-        hierarchical: false
+        }
       },
       interaction: {
         hover: true,
         hideEdgesOnDrag: true,
-        navigationButtons: false,
-        keyboard: false,
+        navigationButtons: true,
+        keyboard: true,
         multiselect: false,
         dragNodes: true,
         dragView: true,
@@ -128,7 +126,7 @@ export function SimpleNetworkGraph({
   useEffect(() => {
     if (!networkRef.current || !data) return;
 
-    console.log('Updating graph data:', data); // Debug log
+    console.log('Updating graph data:', data);
 
     const filteredNodes = data.nodes
       .filter(node => !hideIsolatedNodes || data.edges.some(edge => 
@@ -137,8 +135,8 @@ export function SimpleNetworkGraph({
       .map(node => ({
         id: node.id,
         label: showLabels ? node.label : '',
-        title: JSON.stringify(node.properties, null, 2),
-        mass: 4,
+        title: node.properties.description,
+        value: parseInt(node.properties.rank),
         color: {
           background: '#ffffff',
           border: '#E38C40',
@@ -154,9 +152,11 @@ export function SimpleNetworkGraph({
       edges: data.edges.map(edge => ({
         from: edge.from,
         to: edge.to,
-        label: showLabels ? edge.label : '',
+        label: showLabels ? edge.label.split('<SEP>')[0] : '',
+        title: edge.label,
+        value: parseFloat(edge.properties.weight),
         length: 250,
-        width: 1,
+        width: Math.max(1, Math.min(5, edge.properties.weight / 10)),
         color: {
           color: '#666666',
           opacity: 0.5
@@ -164,7 +164,7 @@ export function SimpleNetworkGraph({
       }))
     };
 
-    console.log('Processed graph data:', visData); // Debug log
+    console.log('Processed graph data:', visData);
     networkRef.current.setData(visData);
     setTimeout(() => networkRef.current?.fit(), 50);
   }, [data, showLabels, hideIsolatedNodes]);
