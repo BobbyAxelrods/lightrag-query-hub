@@ -11,43 +11,49 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { getDocumentsAPI, Document } from "@/lib/api";
+import { Button } from "./ui/button";
+import { RefreshCw } from "lucide-react";
 
 export function Documents() {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(true);
   const [documents, setDocuments] = useState<Document[]>([]);
   const [error, setError] = useState<Error | null>(null);
+  const [lastRefreshed, setLastRefreshed] = useState<Date | null>(null);
+
+  const fetchDocuments = async () => {
+    try {
+      setIsLoading(true);
+      const response = await getDocumentsAPI();
+      
+      if (response && response.status === "success" && response.data) {
+        setDocuments(response.data);
+        setError(null);
+        setLastRefreshed(new Date());
+        console.log("Documents loaded:", response.data);
+      } else {
+        setDocuments([]);
+        setError(new Error(response?.message || "No documents found or empty response"));
+        console.warn("No documents found or empty response:", response);
+      }
+    } catch (err) {
+      console.error("Failed to fetch documents:", err);
+      setError(err as Error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch documents. Please check server connection.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchDocuments = async () => {
-      try {
-        setIsLoading(true);
-        const response = await getDocumentsAPI();
-        
-        if (response && response.status === "success" && response.data) {
-          setDocuments(response.data);
-          console.log("Documents loaded:", response.data);
-        } else {
-          setDocuments([]);
-          console.warn("No documents found or empty response");
-        }
-      } catch (err) {
-        console.error("Failed to fetch documents:", err);
-        setError(err as Error);
-        toast({
-          title: "Error",
-          description: "Failed to fetch documents. Please check server connection.",
-          variant: "destructive",
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     fetchDocuments();
     
-    // Refresh the documents every 10 seconds
-    const intervalId = setInterval(fetchDocuments, 10000);
+    // Refresh the documents every 15 seconds
+    const intervalId = setInterval(fetchDocuments, 15000);
     
     return () => clearInterval(intervalId);
   }, [toast]);
@@ -60,21 +66,33 @@ export function Documents() {
     );
   }
 
-  if (error && documents.length === 0) {
-    return (
-      <div className="w-full max-w-4xl mx-auto p-6 bg-white rounded-xl shadow-lg text-center">
-        <h2 className="text-2xl font-bold text-gray-900 mb-4">Uploaded Documents</h2>
-        <div className="p-8 text-gray-600">
-          <p>Could not retrieve documents. Please check your server connection.</p>
-          <p className="mt-2 text-sm text-gray-500">Make sure your backend is running at http://localhost:8000</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="w-full max-w-4xl mx-auto p-6 space-y-6 bg-white rounded-xl shadow-lg">
-      <h2 className="text-2xl font-bold text-gray-900">Uploaded Documents</h2>
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-bold text-gray-900">Uploaded Documents</h2>
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={fetchDocuments} 
+          className="flex items-center space-x-2"
+        >
+          <RefreshCw className="w-4 h-4 mr-1" /> Refresh
+        </Button>
+      </div>
+      
+      {lastRefreshed && (
+        <div className="text-sm text-gray-500">
+          Last refreshed: {lastRefreshed.toLocaleTimeString()}
+        </div>
+      )}
+      
+      {error && (
+        <div className="p-4 mb-4 text-sm text-red-700 bg-red-100 rounded-lg">
+          <p>Could not retrieve documents. Please check your server connection.</p>
+          <p className="mt-2 text-xs">Make sure your backend is running at http://localhost:8000</p>
+          <p className="mt-2 text-xs">Error details: {error.message}</p>
+        </div>
+      )}
       
       {documents.length === 0 ? (
         <div className="text-center p-8 text-gray-600">

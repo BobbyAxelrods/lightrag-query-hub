@@ -1,8 +1,12 @@
+
 import axios from "axios";
 import { GraphNode, GraphEdge, GraphData } from "@/components/graph/types";
 
+// Determine the API URL based on environment variables or default to localhost
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+
 const api = axios.create({
-  baseURL: "http://localhost:8000",
+  baseURL: API_BASE_URL,
   headers: {
     "Content-Type": "application/json",
     "Accept": "application/json",
@@ -54,6 +58,7 @@ export type { GraphNode, GraphEdge, GraphData };
 
 export const getGraphAPI = async (): Promise<GraphData> => {
   try {
+    console.log("Fetching graph data from:", `${API_BASE_URL}/get-graph`);
     const response = await api.get("/get-graph");
     return response.data;
   } catch (error) {
@@ -102,6 +107,7 @@ export const deleteDocumentAPI = async (docId: string): Promise<QueryResponse> =
 
 export const healthCheckAPI = async (): Promise<HealthResponse> => {
   try {
+    console.log("Checking health at:", `${API_BASE_URL}/health`);
     const response = await api.get("/health");
     return response.data;
   } catch (error) {
@@ -112,7 +118,7 @@ export const healthCheckAPI = async (): Promise<HealthResponse> => {
 
 export const getDocumentsAPI = async (): Promise<QueryResponse> => {
   try {
-    console.log("Fetching documents...");
+    console.log("Fetching documents from:", `${API_BASE_URL}/get-document`);
     const response = await api.post("/get-document", {});
     console.log("Documents response:", response.data);
     return response.data;
