@@ -11,7 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { queryAPI } from "@/lib/api";
-import { Loader2, Clock } from "lucide-react";
+import { Loader2, Clock, AlertCircle } from "lucide-react";
 import ReactMarkdown from 'react-markdown';
 
 export function QueryForm() {
@@ -19,6 +19,7 @@ export function QueryForm() {
   const [mode, setMode] = useState<"local" | "global" | "hybrid">("hybrid");
   const [isLoading, setIsLoading] = useState(false);
   const [response, setResponse] = useState<string>("");
+  const [error, setError] = useState<string | null>(null);
   const [contextBuildTime, setContextBuildTime] = useState<number | null>(null);
   const [totalTime, setTotalTime] = useState<number | null>(null);
   const responseRef = useRef<HTMLDivElement>(null);
@@ -43,6 +44,7 @@ export function QueryForm() {
 
     setIsLoading(true);
     setResponse("");
+    setError(null);
     setContextBuildTime(null);
     setTotalTime(null);
 
@@ -55,24 +57,33 @@ export function QueryForm() {
         only_need_context: false,
       });
 
-      // Extract response from the result
-      const responseText = result.data?.choices?.[0]?.message?.content || 
-                           result.data || 
-                           result.message || 
-                           "No response received";
-
-      setResponse(responseText);
-      
       const endTime = performance.now();
       setTotalTime((endTime - startTime) / 1000);
       setContextBuildTime((endTime - startTime) / 1000);
 
-      toast({
-        title: "Success",
-        description: "Query processed successfully",
-      });
+      if (result.status === "error") {
+        setError(result.message || "An error occurred processing your query");
+        toast({
+          title: "Error",
+          description: result.message || "Failed to process query",
+          variant: "destructive",
+        });
+      } else {
+        // Extract response from the result
+        const responseText = result.data?.choices?.[0]?.message?.content || 
+                           result.data || 
+                           result.message || 
+                           "No response received";
+
+        setResponse(responseText);
+        toast({
+          title: "Success",
+          description: "Query processed successfully",
+        });
+      }
     } catch (error: any) {
-      console.error("Query Error:", error);
+      console.error("Query Form Error:", error);
+      setError(error.message || "Failed to process query");
       toast({
         title: "Error",
         description: error.message || "Failed to process query",
@@ -134,6 +145,21 @@ export function QueryForm() {
           <div className="flex items-center gap-2">
             <Clock className="h-4 w-4" />
             <span>Response Time: {totalTime?.toFixed(2)}s</span>
+          </div>
+        </div>
+      )}
+
+      {error && (
+        <div className="mt-8 p-6 bg-red-50/90 border border-red-200 rounded-lg">
+          <div className="flex items-start gap-3">
+            <AlertCircle className="h-5 w-5 text-red-500 mt-0.5" />
+            <div>
+              <h3 className="font-semibold text-lg mb-2 text-red-700">Error Processing Query</h3>
+              <p className="text-red-600">{error}</p>
+              <p className="mt-4 text-sm text-red-600/80">
+                Please check that your backend server is running correctly at {import.meta.env.VITE_API_URL || "http://localhost:8000"}.
+              </p>
+            </div>
           </div>
         </div>
       )}

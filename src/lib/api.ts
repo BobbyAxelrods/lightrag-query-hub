@@ -1,10 +1,10 @@
-
 import axios from "axios";
 import { GraphNode, GraphEdge, GraphData } from "@/components/graph/types";
 
 // Determine the API URL based on environment variables or default to localhost
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
+// Create a configurable axios instance
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
@@ -14,10 +14,20 @@ const api = axios.create({
   timeout: 30000, // 30 seconds timeout
 });
 
+// Enhanced error interceptor with detailed logging
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    console.error("API Error:", error.response?.data || error.message);
+    // Log detailed information about the error
+    console.error("API Error:", {
+      endpoint: error.config?.url,
+      method: error.config?.method,
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      data: error.response?.data,
+      message: error.message,
+    });
+    
     throw error;
   }
 );
@@ -73,9 +83,21 @@ export const queryAPI = async (params: QueryRequest): Promise<QueryResponse> => 
     const response = await api.post("/query", params);
     console.log("Query response:", response.data);
     return response.data;
-  } catch (error) {
-    console.error("Query API Error:", error);
-    throw error;
+  } catch (error: any) {
+    console.error("Query API Error:", {
+      endpoint: "/query",
+      parameters: params,
+      error: error.response?.data || error.message
+    });
+    
+    // Return a structured error response instead of throwing
+    return {
+      status: "error",
+      data: null,
+      message: error.response?.data?.message || 
+              error.response?.statusText || 
+              `Error ${error.response?.status || ''}: ${error.message}`
+    };
   }
 };
 
