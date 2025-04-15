@@ -9,42 +9,27 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Zap } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { queryAPI } from "@/lib/api";
 
 interface QueryFormProps {
   onQueryComplete?: (query: string, response: string) => void;
-  onStreamUpdate?: (partialResponse: string) => void;
 }
 
-export function QueryForm({ onQueryComplete, onStreamUpdate }: QueryFormProps) {
+export function QueryForm({ onQueryComplete }: QueryFormProps) {
   const [query, setQuery] = useState("");
   const [mode, setMode] = useState<"local" | "global" | "hybrid">("hybrid");
   const [isLoading, setIsLoading] = useState(false);
-  const [isStreamEnabled, setIsStreamEnabled] = useState(true);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!query.trim()) return;
 
     setIsLoading(true);
-    let fullResponse = "";
-
     try {
-      await queryAPI({
-        query,
-        mode,
-        stream: isStreamEnabled
-      }, (chunk: string) => {
-        fullResponse += chunk;
-        if (onStreamUpdate) {
-          onStreamUpdate(fullResponse);
-        }
-      });
-
+      const response = await queryAPI({ query, mode });
+      
       if (onQueryComplete) {
-        onQueryComplete(query, fullResponse);
+        onQueryComplete(query, response.message || response.data || "");
       }
       
       setQuery("");
@@ -78,19 +63,6 @@ export function QueryForm({ onQueryComplete, onStreamUpdate }: QueryFormProps) {
               <SelectItem value="hybrid">Hybrid</SelectItem>
             </SelectContent>
           </Select>
-
-          <Button
-            type="button"
-            variant="outline"
-            size="icon"
-            className={cn(
-              "h-12 w-12 border-[#E38C40]/20",
-              isStreamEnabled && "bg-[#E38C40]/10 text-[#E38C40] border-[#E38C40]"
-            )}
-            onClick={() => setIsStreamEnabled(!isStreamEnabled)}
-          >
-            <Zap className="h-4 w-4" />
-          </Button>
 
           <Button 
             type="submit" 

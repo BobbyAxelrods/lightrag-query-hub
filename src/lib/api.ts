@@ -19,8 +19,6 @@ api.interceptors.response.use(
 export interface QueryRequest {
   query: string;
   mode: "local" | "global" | "hybrid";
-  stream?: boolean;
-  only_need_context?: boolean;
 }
 
 export interface QueryResponse {
@@ -28,6 +26,11 @@ export interface QueryResponse {
   data: any;
   message: string | null;
 }
+
+export const queryAPI = async (params: QueryRequest): Promise<QueryResponse> => {
+  const response = await api.post("/query", params);
+  return response.data;
+};
 
 export interface HealthResponse {
   status: string;
@@ -45,52 +48,6 @@ export interface UploadResponse {
   status: string;
   message: string;
 }
-
-export const queryAPI = async (params: QueryRequest, onChunk?: (chunk: string) => void): Promise<void> => {
-  try {
-    const endpoint = params.stream ? "/query_stream" : "/query";
-    const response = await fetch(`http://localhost:8000${endpoint}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(params),
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    if (params.stream) {
-      const reader = response.body?.getReader();
-      if (!reader) throw new Error("No reader available");
-
-      const decoder = new TextDecoder();
-      let accumulatedText = "";
-      
-      while (true) {
-        const { done, value } = await reader.read();
-        
-        if (done) break;
-        
-        const newText = decoder.decode(value);
-        accumulatedText = newText; // Don't accumulate, just use latest chunk
-
-        if (onChunk && accumulatedText.trim()) {
-          onChunk(accumulatedText);
-        }
-      }
-    } else {
-      const data = await response.json();
-      if (onChunk) {
-        onChunk(data.response || data.message || "");
-      }
-    }
-  } catch (error) {
-    console.error("API Error:", error);
-    throw error;
-  }
-};
 
 export const uploadFileAPI = async (file: File, uploadType: "initial" | "incremental"): Promise<UploadResponse> => {
   const formData = new FormData();
@@ -187,56 +144,27 @@ export const getGraphDataFromQuery = async (): Promise<GraphData> => {
   try {
     const response = await api.get("/graph_context");
     const data = response.data;
-    console.log("Raw graph data received:", data);
 
     if (!data.nodes || !data.edges) {
-      console.error("Invalid graph data structure:", data);
       throw new Error("Invalid graph data structure");
     }
 
-    // Transform nodes first
-    const nodes = data.nodes.map((node: LocalGraphNode) => {
-      console.log("Processing node:", node);
-      return {
-        id: node.id,
-        label: node.entity?.replace(/"/g, '') || 'Unnamed Node',
-        properties: {
-          type: node.type?.replace(/"/g, '') || 'unknown',
-          description: node.description?.replace(/"/g, '') || '',
-          rank: parseFloat(node.rank) || 1,
-          content: node.description?.replace(/"/g, '') || ''
-        }
-      };
-    });
-
-    // Transform edges with proper relationship mapping
-    const edges = data.edges.map((edge: LocalGraphEdge) => {
-      console.log("Processing edge:", edge);
-      // Ensure source and target exist in nodes
-      const sourceExists = nodes.some(node => node.id === edge.source);
-      const targetExists = nodes.some(node => node.id === edge.target);
-      
-      if (!sourceExists || !targetExists) {
-        console.warn(`Edge skipped - missing nodes: source=${edge.source}, target=${edge.target}`);
-        return null;
+    const nodes = data.nodes.map((node: LocalGraphNode) => ({
+      id: node.id,
+      label: node.entity || 'Unnamed Node',
+      properties: {
+        type: node.type || 'unknown',
+        description: node.description || '',
       }
+    }));
 
-      return {
-        from: edge.source,
-        to: edge.target,
-        label: edge.description?.replace(/"/g, '') || '',
-        properties: {
-          weight: parseFloat(edge.weight) || 1,
-          rank: parseFloat(edge.rank) || 1,
-          keywords: edge.keywords?.replace(/"/g, '') || '',
-          created_at: edge.created_at
-        }
-      };
-    }).filter(edge => edge !== null);
+    const edges = data.edges.map((edge: LocalGraphEdge) => ({
+      from: edge.source,
+      to: edge.target,
+      label: edge.description || '',
+    }));
 
-    const graphData = { nodes, edges };
-    console.log("Final processed graph data:", graphData);
-    return graphData;
+    return { nodes, edges };
   } catch (error) {
     console.error("Failed to fetch graph data:", error);
     throw error;
