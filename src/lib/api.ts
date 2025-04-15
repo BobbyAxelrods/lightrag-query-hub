@@ -50,6 +50,21 @@ export interface UploadResponse {
   message: string;
 }
 
+export interface GraphData {
+  nodes: GraphNode[];
+  edges: GraphEdge[];
+}
+
+export const getGraphAPI = async (): Promise<GraphData> => {
+  try {
+    const response = await api.get("/get-graph");
+    return response.data;
+  } catch (error) {
+    console.error("Get Graph API Error:", error);
+    throw error;
+  }
+};
+
 export const queryAPI = async (params: QueryRequest): Promise<QueryResponse> => {
   try {
     console.log("Sending query:", params);

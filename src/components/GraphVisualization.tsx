@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { getGraphAPI } from "@/lib/api";
+import { getGraphAPI, GraphData } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import { SimpleNetworkGraph } from "./graph/SimpleNetworkGraph";
 import { GraphControls } from "./graph/GraphControls";
@@ -10,12 +10,12 @@ export function GraphVisualization() {
   const { toast } = useToast();
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [showGraph, setShowGraph] = useState(true);
-  const [showLabels, setShowLabels] = useState(false); // Changed default to false
-  const [hideIsolatedNodes, setHideIsolatedNodes] = useState(true); // Changed default to true
+  const [showLabels, setShowLabels] = useState(false);
+  const [hideIsolatedNodes, setHideIsolatedNodes] = useState(true);
 
-  const { data: graphData, isLoading, error } = useQuery({
+  const { data: graphData, isLoading, error } = useQuery<GraphData>({
     queryKey: ["graph"],
-    queryFn: getGraphAPI
+    queryFn: getGraphAPI,
   });
 
   useEffect(() => {
@@ -30,14 +30,16 @@ export function GraphVisualization() {
 
   const handleNodeClick = (nodeId: string) => {
     setSelectedNodeId(nodeId);
-    const node = graphData?.nodes.find(n => n.id === nodeId);
-    if (node) {
-      toast({
-        title: node.label,
-        description: Object.entries(node.properties)
-          .map(([key, value]) => `${key}: ${value}`)
-          .join(', '),
-      });
+    if (graphData && graphData.nodes) {
+      const node = graphData.nodes.find(n => n.id === nodeId);
+      if (node) {
+        toast({
+          title: node.label,
+          description: Object.entries(node.properties)
+            .map(([key, value]) => `${key}: ${value}`)
+            .join(', '),
+        });
+      }
     }
   };
 
@@ -60,9 +62,17 @@ export function GraphVisualization() {
             <div className="flex items-center justify-center h-[500px]">
               <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary" />
             </div>
-          ) : graphData && (
+          ) : graphData ? (
             <SimpleNetworkGraph 
               data={graphData}
+              onNodeClick={handleNodeClick}
+              showLabels={showLabels}
+              hideIsolatedNodes={hideIsolatedNodes}
+            />
+          ) : (
+            // Add a default empty state with proper structure
+            <SimpleNetworkGraph 
+              data={{ nodes: [], edges: [] }}
               onNodeClick={handleNodeClick}
               showLabels={showLabels}
               hideIsolatedNodes={hideIsolatedNodes}
