@@ -1,5 +1,5 @@
-
 import axios from "axios";
+import { GraphNode, GraphEdge, GraphData } from "@/components/graph/types";
 
 const api = axios.create({
   baseURL: "http://localhost:8000",
@@ -50,10 +50,7 @@ export interface UploadResponse {
   message: string;
 }
 
-export interface GraphData {
-  nodes: GraphNode[];
-  edges: GraphEdge[];
-}
+export type { GraphNode, GraphEdge, GraphData };
 
 export const getGraphAPI = async (): Promise<GraphData> => {
   try {
