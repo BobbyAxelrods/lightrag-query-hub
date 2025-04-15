@@ -1,38 +1,75 @@
 
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { getGraphAPI } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import { SimpleNetworkGraph } from "./graph/SimpleNetworkGraph";
-import { GraphData } from "./graph/types";
+import { GraphControls } from "./graph/GraphControls";
 
-interface GraphVisualizationProps {
-  graphData: GraphData;
-}
-
-export function GraphVisualization({ graphData }: GraphVisualizationProps) {
+export function GraphVisualization() {
   const { toast } = useToast();
+  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  const [showGraph, setShowGraph] = useState(true);
+  const [showLabels, setShowLabels] = useState(false); // Changed default to false
+  const [hideIsolatedNodes, setHideIsolatedNodes] = useState(true); // Changed default to true
+
+  const { data: graphData, isLoading, error } = useQuery({
+    queryKey: ["graph"],
+    queryFn: getGraphAPI
+  });
 
   useEffect(() => {
-    console.log("GraphData:", graphData);
-  }, [graphData]);
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to load graph data",
+        variant: "destructive",
+      });
+    }
+  }, [error, toast]);
 
   const handleNodeClick = (nodeId: string) => {
-    const node = graphData.nodes.find(n => n.id === nodeId);
+    setSelectedNodeId(nodeId);
+    const node = graphData?.nodes.find(n => n.id === nodeId);
     if (node) {
       toast({
         title: node.label,
-        description: node.properties.description || 'No description available',
+        description: Object.entries(node.properties)
+          .map(([key, value]) => `${key}: ${value}`)
+          .join(', '),
       });
     }
   };
 
+  if (error) return null;
+
   return (
-    <div className="w-full h-full">
-      <div className="bg-white/90 backdrop-blur-sm rounded-xl shadow-xl p-4">
-        <SimpleNetworkGraph 
-          data={graphData}
-          onNodeClick={handleNodeClick}
-        />
-      </div>
+    <div className="w-full max-w-4xl mx-auto mt-8">
+      <GraphControls
+        showGraph={showGraph}
+        showLabels={showLabels}
+        hideIsolatedNodes={hideIsolatedNodes}
+        onToggleGraph={() => setShowGraph(!showGraph)}
+        onToggleLabels={() => setShowLabels(!showLabels)}
+        onToggleIsolatedNodes={() => setHideIsolatedNodes(!hideIsolatedNodes)}
+      />
+
+      {showGraph && (
+        <div className="mt-4 bg-white/90 backdrop-blur-sm rounded-xl shadow-xl p-4">
+          {isLoading ? (
+            <div className="flex items-center justify-center h-[500px]">
+              <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary" />
+            </div>
+          ) : graphData && (
+            <SimpleNetworkGraph 
+              data={graphData}
+              onNodeClick={handleNodeClick}
+              showLabels={showLabels}
+              hideIsolatedNodes={hideIsolatedNodes}
+            />
+          )}
+        </div>
+      )}
     </div>
   );
 }

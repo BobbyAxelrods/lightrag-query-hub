@@ -19,6 +19,8 @@ api.interceptors.response.use(
 export interface QueryRequest {
   query: string;
   mode: "local" | "global" | "hybrid";
+  stream?: boolean;
+  only_need_context?: boolean;
 }
 
 export interface QueryResponse {
@@ -26,11 +28,6 @@ export interface QueryResponse {
   data: any;
   message: string | null;
 }
-
-export const queryAPI = async (params: QueryRequest): Promise<QueryResponse> => {
-  const response = await api.post("/query", params);
-  return response.data;
-};
 
 export interface HealthResponse {
   status: string;
@@ -48,6 +45,51 @@ export interface UploadResponse {
   status: string;
   message: string;
 }
+
+export const queryAPI = async (params: QueryRequest, onChunk?: (chunk: string) => void): Promise<void> => {
+  try {
+    const endpoint = params.stream ? "/query_stream" : "/query";
+    const response = await fetch(`http://localhost:8000${endpoint}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(params),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    if (params.stream) {
+      const reader = response.body?.getReader();
+      if (!reader) throw new Error("No reader available");
+
+      const decoder = new TextDecoder();
+      
+      while (true) {
+        const { done, value } = await reader.read();
+        
+        if (done) {
+          break;
+        }
+        
+        const chunk = decoder.decode(value);
+        if (onChunk) {
+          onChunk(chunk);
+        }
+      }
+    } else {
+      const data = await response.json();
+      if (onChunk) {
+        onChunk(data.response || data.message || "");
+      }
+    }
+  } catch (error) {
+    console.error("API Error:", error);
+    throw error;
+  }
+};
 
 export const uploadFileAPI = async (file: File, uploadType: "initial" | "incremental"): Promise<UploadResponse> => {
   const formData = new FormData();
@@ -80,7 +122,6 @@ export interface GraphEdge {
   from: string;
   to: string;
   label: string;
-  properties: Record<string, any>;
 }
 
 export interface GraphData {
@@ -96,77 +137,4 @@ export const getGraphAPI = async (): Promise<GraphData> => {
 export const getDocumentsAPI = async (): Promise<QueryResponse> => {
   const response = await api.post("/get-document", {});
   return response.data;
-};
-
-interface EntityNode {
-  id: string;
-  entity: string;
-  type: string;
-  description: string;
-  rank: number;
-}
-
-interface RelationEdge {
-  id: string;
-  source: string;
-  target: string;
-  description: string;
-  weight: number;
-  rank: number;
-  created_at: string;
-}
-
-interface LocalGraphNode {
-  id: string;
-  entity: string;
-  type: string;
-  description: string;
-  rank: string;
-}
-
-interface LocalGraphEdge {
-  id: string;
-  source: string;
-  target: string;
-  description: string;
-  keywords: string;
-  weight: string;
-  rank: string;
-  created_at: string;
-}
-
-interface LocalGraphData {
-  nodes: LocalGraphNode[];
-  edges: LocalGraphEdge[];
-}
-
-export const getGraphDataFromQuery = async (): Promise<GraphData> => {
-  try {
-    const response = await api.get("/graph_context");
-    const data = response.data;
-
-    if (!data.nodes || !data.edges) {
-      throw new Error("Invalid graph data structure");
-    }
-
-    const nodes = data.nodes.map((node: LocalGraphNode) => ({
-      id: node.id,
-      label: node.entity || 'Unnamed Node',
-      properties: {
-        type: node.type || 'unknown',
-        description: node.description || '',
-      }
-    }));
-
-    const edges = data.edges.map((edge: LocalGraphEdge) => ({
-      from: edge.source,
-      to: edge.target,
-      label: edge.description || '',
-    }));
-
-    return { nodes, edges };
-  } catch (error) {
-    console.error("Failed to fetch graph data:", error);
-    throw error;
-  }
 };
