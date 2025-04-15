@@ -49,19 +49,23 @@ export function QueryForm() {
     const startTime = performance.now();
 
     try {
-      await queryAPI({
+      const result = await queryAPI({
         query,
         mode,
-        stream: false
-      }, (chunk: string) => {
-        // Set the entire response at once
-        setResponse(chunk);
-        const contextBuildEndTime = performance.now();
-        setContextBuildTime((contextBuildEndTime - startTime) / 1000);
+        only_need_context: false,
       });
 
+      // Extract response from the result
+      const responseText = result.data?.choices?.[0]?.message?.content || 
+                           result.data || 
+                           result.message || 
+                           "No response received";
+
+      setResponse(responseText);
+      
       const endTime = performance.now();
       setTotalTime((endTime - startTime) / 1000);
+      setContextBuildTime((endTime - startTime) / 1000);
 
       toast({
         title: "Success",
@@ -129,14 +133,8 @@ export function QueryForm() {
         <div className="mt-4 space-y-2 text-sm text-[#4A4036]/70">
           <div className="flex items-center gap-2">
             <Clock className="h-4 w-4" />
-            <span>Context Build Time: {contextBuildTime?.toFixed(2)}s</span>
+            <span>Response Time: {totalTime?.toFixed(2)}s</span>
           </div>
-          {totalTime !== null && (
-            <div className="flex items-center gap-2">
-              <Clock className="h-4 w-4" />
-              <span>Total Time: {totalTime.toFixed(2)}s</span>
-            </div>
-          )}
         </div>
       )}
 

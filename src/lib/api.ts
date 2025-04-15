@@ -36,6 +36,7 @@ export interface HealthResponse {
 
 export interface Document {
   id: string;
+  doc_id: string;
   status: string;
   created_at: string;
   updated_at: string;
@@ -49,15 +50,10 @@ export interface UploadResponse {
   message: string;
 }
 
-export const queryAPI = async (params: QueryRequest, onResponse?: (response: string) => void): Promise<void> => {
+export const queryAPI = async (params: QueryRequest): Promise<QueryResponse> => {
   try {
     console.log("Sending query:", params);
     const response = await api.post("/query", params);
-    
-    if (onResponse) {
-      onResponse(response.data.response || response.data.message || "");
-    }
-    
     console.log("Query response:", response.data);
     return response.data;
   } catch (error) {

@@ -10,16 +10,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import axios from "axios";
-
-interface Document {
-  id: string;
-  status: string;
-  created_at: string;
-  updated_at: string;
-  content_summary: string;
-  chunks_count: number;
-}
+import { getDocumentsAPI, Document } from "@/lib/api";
 
 export function Documents() {
   const { toast } = useToast();
@@ -31,17 +22,14 @@ export function Documents() {
     const fetchDocuments = async () => {
       try {
         setIsLoading(true);
-        const response = await axios.post("http://localhost:8000/get-document", {});
+        const response = await getDocumentsAPI();
         
-        // Transform the data from object to array format if it exists
-        if (response.data && response.data.data) {
-          const documentsArray = Object.entries(response.data.data).map(([id, doc]: [string, any]) => ({
-            id,
-            ...doc,
-          }));
-          setDocuments(documentsArray);
+        if (response && response.status === "success" && response.data) {
+          setDocuments(response.data);
+          console.log("Documents loaded:", response.data);
         } else {
           setDocuments([]);
+          console.warn("No documents found or empty response");
         }
       } catch (err) {
         console.error("Failed to fetch documents:", err);
@@ -108,8 +96,8 @@ export function Documents() {
             </TableHeader>
             <TableBody>
               {documents.map((doc) => (
-                <TableRow key={doc.id}>
-                  <TableCell className="font-medium">{doc.id}</TableCell>
+                <TableRow key={doc.doc_id || doc.id}>
+                  <TableCell className="font-medium">{doc.doc_id || doc.id}</TableCell>
                   <TableCell>
                     <Badge 
                       variant={doc.status === "processed" ? "secondary" : "destructive"}
@@ -117,12 +105,12 @@ export function Documents() {
                       {doc.status}
                     </Badge>
                   </TableCell>
-                  <TableCell>{new Date(doc.created_at).toLocaleString()}</TableCell>
-                  <TableCell>{new Date(doc.updated_at).toLocaleString()}</TableCell>
+                  <TableCell>{doc.created_at ? new Date(doc.created_at).toLocaleString() : 'N/A'}</TableCell>
+                  <TableCell>{doc.updated_at ? new Date(doc.updated_at).toLocaleString() : 'N/A'}</TableCell>
                   <TableCell className="max-w-md truncate">
-                    {doc.content_summary}
+                    {doc.content_summary || 'No summary available'}
                   </TableCell>
-                  <TableCell>{doc.chunks_count}</TableCell>
+                  <TableCell>{doc.chunks_count || 0}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
