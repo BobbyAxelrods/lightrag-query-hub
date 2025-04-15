@@ -1,9 +1,8 @@
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch";
 import {
   Select,
   SelectContent,
@@ -19,10 +18,9 @@ export function QueryForm() {
   const [query, setQuery] = useState("");
   const [mode, setMode] = useState<"local" | "global" | "hybrid">("hybrid");
   const [isLoading, setIsLoading] = useState(false);
-  const [streamingResponse, setStreamingResponse] = useState<string>("");
+  const [response, setResponse] = useState<string>("");
   const [contextBuildTime, setContextBuildTime] = useState<number | null>(null);
   const [totalTime, setTotalTime] = useState<number | null>(null);
-  const [isStreamEnabled, setIsStreamEnabled] = useState(true);
   const responseRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
@@ -30,7 +28,7 @@ export function QueryForm() {
     if (responseRef.current) {
       responseRef.current.scrollTop = responseRef.current.scrollHeight;
     }
-  }, [streamingResponse]);
+  }, [response]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,36 +42,22 @@ export function QueryForm() {
     }
 
     setIsLoading(true);
-    setStreamingResponse("");
+    setResponse("");
     setContextBuildTime(null);
     setTotalTime(null);
 
     const startTime = performance.now();
-    let contextBuildEndTime: number | null = null;
 
     try {
-      let isFirstChunk = true;
-      
       await queryAPI({
         query,
         mode,
-        stream: isStreamEnabled
+        stream: false
       }, (chunk: string) => {
-        if (isStreamEnabled) {
-          if (isFirstChunk) {
-            contextBuildEndTime = performance.now();
-            setContextBuildTime((contextBuildEndTime - startTime) / 1000);
-            isFirstChunk = false;
-          }
-          if (chunk.trim()) {
-            setStreamingResponse(prev => prev + chunk);
-          }
-        } else {
-          // For non-streaming response, set the entire response at once
-          setStreamingResponse(chunk);
-          contextBuildEndTime = performance.now();
-          setContextBuildTime((contextBuildEndTime - startTime) / 1000);
-        }
+        // Set the entire response at once
+        setResponse(chunk);
+        const contextBuildEndTime = performance.now();
+        setContextBuildTime((contextBuildEndTime - startTime) / 1000);
       });
 
       const endTime = performance.now();
@@ -111,35 +95,18 @@ export function QueryForm() {
           />
         </div>
 
-        <div className="flex items-center justify-between gap-4">
-          <div className="space-y-2 flex-1">
-            <label className="block text-sm font-medium text-[#4A4036]">Query Mode</label>
-            <Select value={mode} onValueChange={(value: "local" | "global" | "hybrid") => setMode(value)}>
-              <SelectTrigger className="bg-white/50 border-[#E38C40]/20 text-[#4A4036]">
-                <SelectValue placeholder="Select mode" />
-              </SelectTrigger>
-              <SelectContent className="bg-white border-[#E38C40]/20">
-                <SelectItem value="local" className="text-[#4A4036] hover:bg-[#F9B054]/10">Local</SelectItem>
-                <SelectItem value="global" className="text-[#4A4036] hover:bg-[#F9B054]/10">Global</SelectItem>
-                <SelectItem value="hybrid" className="text-[#4A4036] hover:bg-[#F9B054]/10">Hybrid</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="flex items-center space-x-2">
-            <Switch
-              id="stream-mode"
-              checked={isStreamEnabled}
-              onCheckedChange={setIsStreamEnabled}
-              className="data-[state=checked]:bg-[#E38C40]"
-            />
-            <label
-              htmlFor="stream-mode"
-              className="text-sm font-medium text-[#4A4036] leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-            >
-              Stream Mode
-            </label>
-          </div>
+        <div className="space-y-2 flex-1">
+          <label className="block text-sm font-medium text-[#4A4036]">Query Mode</label>
+          <Select value={mode} onValueChange={(value: "local" | "global" | "hybrid") => setMode(value)}>
+            <SelectTrigger className="bg-white/50 border-[#E38C40]/20 text-[#4A4036]">
+              <SelectValue placeholder="Select mode" />
+            </SelectTrigger>
+            <SelectContent className="bg-white border-[#E38C40]/20">
+              <SelectItem value="local" className="text-[#4A4036] hover:bg-[#F9B054]/10">Local</SelectItem>
+              <SelectItem value="global" className="text-[#4A4036] hover:bg-[#F9B054]/10">Global</SelectItem>
+              <SelectItem value="hybrid" className="text-[#4A4036] hover:bg-[#F9B054]/10">Hybrid</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         <Button 
@@ -173,7 +140,7 @@ export function QueryForm() {
         </div>
       )}
 
-      {streamingResponse && (
+      {response && (
         <div 
           ref={responseRef}
           className="mt-8 p-8 bg-[#F5F5F3]/90 rounded-lg max-h-[800px] overflow-y-auto scroll-smooth border border-[#E38C40]/20"
@@ -196,7 +163,7 @@ export function QueryForm() {
             whitespace-pre-wrap break-words"
           >
             <ReactMarkdown>
-              {streamingResponse}
+              {response}
             </ReactMarkdown>
           </div>
         </div>

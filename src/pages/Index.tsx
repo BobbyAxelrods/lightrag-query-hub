@@ -4,7 +4,6 @@ import { Navigation } from "@/components/Navigation";
 import { QueryForm } from "@/components/QueryForm";
 import { Indexer } from "@/components/Indexer";
 import { HealthCheck } from "@/components/HealthCheck";
-import { GraphVisualization } from "@/components/GraphVisualization";
 import { Background3D } from "@/components/Background3D";
 
 const Index = () => {
@@ -46,8 +45,6 @@ const Index = () => {
               {activeTab === "query" && <QueryForm />}
               {activeTab === "indexer" && <Indexer />}
             </div>
-
-            <GraphVisualization />
           </div>
         </main>
 

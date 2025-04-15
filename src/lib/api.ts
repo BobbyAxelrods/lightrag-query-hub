@@ -1,3 +1,4 @@
+
 import axios from "axios";
 
 const api = axios.create({
@@ -6,6 +7,7 @@ const api = axios.create({
     "Content-Type": "application/json",
     "Accept": "application/json",
   },
+  timeout: 30000, // 30 seconds timeout
 });
 
 api.interceptors.response.use(
@@ -19,7 +21,6 @@ api.interceptors.response.use(
 export interface QueryRequest {
   query: string;
   mode: "local" | "global" | "hybrid";
-  stream?: boolean;
   only_need_context?: boolean;
 }
 
@@ -39,6 +40,8 @@ export interface Document {
   created_at: string;
   updated_at: string;
   content: string;
+  content_summary?: string;
+  chunks_count?: number;
 }
 
 export interface UploadResponse {
@@ -46,95 +49,67 @@ export interface UploadResponse {
   message: string;
 }
 
-export const queryAPI = async (params: QueryRequest, onChunk?: (chunk: string) => void): Promise<void> => {
+export const queryAPI = async (params: QueryRequest, onResponse?: (response: string) => void): Promise<void> => {
   try {
-    const endpoint = params.stream ? "/query_stream" : "/query";
-    const response = await fetch(`http://localhost:8000${endpoint}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(params),
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+    console.log("Sending query:", params);
+    const response = await api.post("/query", params);
+    
+    if (onResponse) {
+      onResponse(response.data.response || response.data.message || "");
     }
-
-    if (params.stream) {
-      const reader = response.body?.getReader();
-      if (!reader) throw new Error("No reader available");
-
-      const decoder = new TextDecoder();
-      
-      while (true) {
-        const { done, value } = await reader.read();
-        
-        if (done) {
-          break;
-        }
-        
-        const chunk = decoder.decode(value);
-        if (onChunk) {
-          onChunk(chunk);
-        }
-      }
-    } else {
-      const data = await response.json();
-      if (onChunk) {
-        onChunk(data.response || data.message || "");
-      }
-    }
+    
+    console.log("Query response:", response.data);
+    return response.data;
   } catch (error) {
-    console.error("API Error:", error);
+    console.error("Query API Error:", error);
     throw error;
   }
 };
 
 export const uploadFileAPI = async (file: File, uploadType: "initial" | "incremental"): Promise<UploadResponse> => {
-  const formData = new FormData();
-  formData.append("file", file);
+  try {
+    const formData = new FormData();
+    formData.append("file", file);
 
-  const endpoint = uploadType === "initial" ? "/upload" : "/incremental-upload";
-  const response = await api.post(endpoint, formData, {
-    headers: { "Content-Type": "multipart/form-data" },
-  });
-  return response.data;
+    const endpoint = uploadType === "initial" ? "/upload" : "/incremental-upload";
+    const response = await api.post(endpoint, formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Upload API Error:", error);
+    throw error;
+  }
 };
 
 export const deleteDocumentAPI = async (docId: string): Promise<QueryResponse> => {
-  const response = await api.post("/delete_by_doc", { doc_id: docId });
-  return response.data;
+  try {
+    const response = await api.post("/delete_by_doc", { doc_id: docId });
+    return response.data;
+  } catch (error) {
+    console.error("Delete API Error:", error);
+    throw error;
+  }
 };
 
 export const healthCheckAPI = async (): Promise<HealthResponse> => {
-  const response = await api.get("/health");
-  return response.data;
-};
-
-export interface GraphNode {
-  id: string;
-  label: string;
-  properties: Record<string, any>;
-}
-
-export interface GraphEdge {
-  from: string;
-  to: string;
-  label: string;
-}
-
-export interface GraphData {
-  nodes: GraphNode[];
-  edges: GraphEdge[];
-}
-
-export const getGraphAPI = async (): Promise<GraphData> => {
-  const response = await api.get("/get-graph");
-  return response.data;
+  try {
+    const response = await api.get("/health");
+    return response.data;
+  } catch (error) {
+    console.error("Health Check API Error:", error);
+    throw error;
+  }
 };
 
 export const getDocumentsAPI = async (): Promise<QueryResponse> => {
-  const response = await api.post("/get-document", {});
-  return response.data;
+  try {
+    console.log("Fetching documents...");
+    const response = await api.post("/get-document", {});
+    console.log("Documents response:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("Get Documents API Error:", error);
+    throw error;
+  }
 };
