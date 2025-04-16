@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -49,7 +50,7 @@ export function Documents() {
   };
 
   // Fetch documents on initial load
-  useState(() => {
+  useEffect(() => {
     fetchDocuments();
   }, []);
 
