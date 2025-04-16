@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -49,14 +48,10 @@ export function Documents() {
     }
   };
 
-  useEffect(() => {
+  // Fetch documents on initial load
+  useState(() => {
     fetchDocuments();
-    
-    // Refresh the documents every 15 seconds
-    const intervalId = setInterval(fetchDocuments, 15000);
-    
-    return () => clearInterval(intervalId);
-  }, [toast]);
+  }, []);
 
   if (isLoading) {
     return (

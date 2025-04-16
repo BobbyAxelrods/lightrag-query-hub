@@ -1,17 +1,18 @@
+
 import axios from "axios";
 import { GraphNode, GraphEdge, GraphData } from "@/components/graph/types";
 
 // Determine the API URL based on environment variables or default to localhost
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
-// Create a configurable axios instance
+// Create a configurable axios instance with increased timeout
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
     "Content-Type": "application/json",
     "Accept": "application/json",
   },
-  timeout: 30000, // 30 seconds timeout
+  timeout: 300000, // 5 minutes timeout
 });
 
 // Enhanced error interceptor with detailed logging
@@ -109,6 +110,7 @@ export const uploadFileAPI = async (file: File, uploadType: "initial" | "increme
     const endpoint = uploadType === "initial" ? "/upload" : "/incremental-upload";
     const response = await api.post(endpoint, formData, {
       headers: { "Content-Type": "multipart/form-data" },
+      timeout: 300000, // 5 minutes timeout specifically for uploads
     });
     return response.data;
   } catch (error) {
