@@ -1,3 +1,4 @@
+
 import axios from "axios";
 import { GraphNode, GraphEdge, GraphData } from "@/components/graph/types";
 
@@ -16,7 +17,15 @@ const api = axios.create({
 
 // Enhanced error interceptor with detailed logging
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // Log successful responses for debugging
+    console.log("API Success:", {
+      endpoint: response.config?.url,
+      status: response.status,
+      data: response.data,
+    });
+    return response;
+  },
   (error) => {
     // Log detailed information about the error
     console.error("API Error:", {
@@ -82,7 +91,22 @@ export const queryAPI = async (params: QueryRequest): Promise<QueryResponse> => 
     console.log("Sending query:", params);
     const response = await api.post("/query", params);
     console.log("Query response:", response.data);
-    return response.data;
+    
+    // Basic validation to ensure we have a proper response
+    if (!response.data) {
+      return {
+        status: "error",
+        data: null,
+        message: "Empty response received from server"
+      };
+    }
+    
+    // Return the response with fallbacks for missing fields
+    return {
+      status: response.data.status || "success",
+      data: response.data.data || response.data,
+      message: response.data.message || null
+    };
   } catch (error: any) {
     console.error("Query API Error:", {
       endpoint: "/query",

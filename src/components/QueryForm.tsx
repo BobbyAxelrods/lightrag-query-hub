@@ -23,6 +23,7 @@ export function QueryForm() {
   const [contextBuildTime, setContextBuildTime] = useState<number | null>(null);
   const [totalTime, setTotalTime] = useState<number | null>(null);
   const [apiConnectionStatus, setApiConnectionStatus] = useState<"unknown" | "connected" | "disconnected">("unknown");
+  const [debugResponse, setDebugResponse] = useState<any>(null);
   const responseRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
@@ -49,6 +50,7 @@ export function QueryForm() {
     setError(null);
     setContextBuildTime(null);
     setTotalTime(null);
+    setDebugResponse(null);
 
     const startTime = performance.now();
 
@@ -63,6 +65,9 @@ export function QueryForm() {
       setTotalTime((endTime - startTime) / 1000);
       setContextBuildTime((endTime - startTime) / 1000);
       setApiConnectionStatus("connected");
+      
+      // Store the full result for debugging
+      setDebugResponse(result);
 
       if (result.status === "error") {
         setError(result.message || "An error occurred processing your query");
@@ -72,11 +77,37 @@ export function QueryForm() {
           variant: "destructive",
         });
       } else {
-        // Extract response from the result
-        const responseText = result.data?.choices?.[0]?.message?.content || 
-                           result.data || 
-                           result.message || 
-                           "No response received";
+        // Extract response from the result using multiple potential paths
+        let responseText = "";
+        
+        if (result.data?.choices?.[0]?.message?.content) {
+          // Standard OpenAI-like response format
+          responseText = result.data.choices[0].message.content;
+        } else if (typeof result.data === "string") {
+          // Plain string response
+          responseText = result.data;
+        } else if (result.message && typeof result.message === "string") {
+          // Message field as string
+          responseText = result.message;
+        } else if (result.data?.answer) {
+          // Some APIs return {data: {answer: "..."}}
+          responseText = result.data.answer;
+        } else if (result.data?.response) {
+          // Some APIs return {data: {response: "..."}}
+          responseText = result.data.response;
+        } else if (result.data?.text) {
+          // Some APIs return {data: {text: "..."}}
+          responseText = result.data.text;
+        } else if (result.data?.result) {
+          // Some APIs return {data: {result: "..."}}
+          responseText = result.data.result;
+        } else if (result.data && typeof result.data === "object") {
+          // If it's an object but none of the above, stringify it
+          responseText = JSON.stringify(result.data, null, 2);
+        } else {
+          responseText = "Response received but format is unknown. Check console for details.";
+          console.log("Unknown response format:", result);
+        }
 
         setResponse(responseText);
         toast({
@@ -207,6 +238,18 @@ export function QueryForm() {
             <ReactMarkdown>
               {response}
             </ReactMarkdown>
+          </div>
+        </div>
+      )}
+      
+      {debugResponse && !response && !error && (
+        <div className="mt-8 p-6 bg-yellow-50/90 border border-yellow-200 rounded-lg">
+          <h3 className="font-semibold text-lg mb-3 text-yellow-700">Debug Response Information</h3>
+          <p className="text-yellow-800 mb-2">The response was received but couldn't be properly displayed.</p>
+          <div className="bg-white/80 p-4 rounded-md overflow-x-auto">
+            <pre className="text-xs text-gray-800">
+              {JSON.stringify(debugResponse, null, 2)}
+            </pre>
           </div>
         </div>
       )}
