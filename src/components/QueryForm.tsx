@@ -11,7 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { queryAPI } from "@/lib/api";
-import { Loader2, Clock, AlertCircle } from "lucide-react";
+import { Loader2, Clock, AlertCircle, ServerOff } from "lucide-react";
 import ReactMarkdown from 'react-markdown';
 
 export function QueryForm() {
@@ -22,8 +22,10 @@ export function QueryForm() {
   const [error, setError] = useState<string | null>(null);
   const [contextBuildTime, setContextBuildTime] = useState<number | null>(null);
   const [totalTime, setTotalTime] = useState<number | null>(null);
+  const [apiConnectionStatus, setApiConnectionStatus] = useState<"unknown" | "connected" | "disconnected">("unknown");
   const responseRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
   useEffect(() => {
     if (responseRef.current) {
@@ -60,6 +62,7 @@ export function QueryForm() {
       const endTime = performance.now();
       setTotalTime((endTime - startTime) / 1000);
       setContextBuildTime((endTime - startTime) / 1000);
+      setApiConnectionStatus("connected");
 
       if (result.status === "error") {
         setError(result.message || "An error occurred processing your query");
@@ -83,7 +86,15 @@ export function QueryForm() {
       }
     } catch (error: any) {
       console.error("Query Form Error:", error);
-      setError(error.message || "Failed to process query");
+      
+      // Check if it's a network error
+      if (error.message === "Network Error" || error.code === "ERR_NETWORK") {
+        setApiConnectionStatus("disconnected");
+        setError(`Cannot connect to API server at ${API_URL}. Please ensure the backend server is running.`);
+      } else {
+        setError(error.message || "Failed to process query");
+      }
+      
       toast({
         title: "Error",
         description: error.message || "Failed to process query",
@@ -140,6 +151,13 @@ export function QueryForm() {
         </Button>
       </form>
 
+      {apiConnectionStatus === "disconnected" && !isLoading && (
+        <div className="flex items-center justify-center gap-2 mt-4 p-3 bg-orange-50 border border-orange-200 rounded-md text-orange-700">
+          <ServerOff className="h-5 w-5" />
+          <span>API Server appears to be offline. Check your backend connection.</span>
+        </div>
+      )}
+
       {(contextBuildTime !== null || totalTime !== null) && (
         <div className="mt-4 space-y-2 text-sm text-[#4A4036]/70">
           <div className="flex items-center gap-2">
@@ -157,7 +175,7 @@ export function QueryForm() {
               <h3 className="font-semibold text-lg mb-2 text-red-700">Error Processing Query</h3>
               <p className="text-red-600">{error}</p>
               <p className="mt-4 text-sm text-red-600/80">
-                Please check that your backend server is running correctly at {import.meta.env.VITE_API_URL || "http://localhost:8000"}.
+                Please check that your backend server is running correctly at {API_URL}.
               </p>
             </div>
           </div>
