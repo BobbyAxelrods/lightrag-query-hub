@@ -1,4 +1,3 @@
-
 import axios from "axios";
 import { GraphNode, GraphEdge, GraphData } from "@/components/graph/types";
 
@@ -102,10 +101,19 @@ export const queryAPI = async (params: QueryRequest): Promise<QueryResponse> => 
   }
 };
 
-export const uploadFileAPI = async (file: File, uploadType: "initial" | "incremental"): Promise<UploadResponse> => {
+export const uploadFileAPI = async (files: File | File[], uploadType: "initial" | "incremental"): Promise<UploadResponse> => {
   try {
     const formData = new FormData();
-    formData.append("file", file);
+    
+    if (Array.isArray(files)) {
+      // Handle multiple files
+      files.forEach((file, index) => {
+        formData.append(`files`, file);
+      });
+    } else {
+      // Handle single file for backward compatibility
+      formData.append("file", files);
+    }
 
     const endpoint = uploadType === "initial" ? "/upload" : "/incremental-upload";
     const response = await api.post(endpoint, formData, {
