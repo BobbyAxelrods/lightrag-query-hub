@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { healthCheckAPI } from "@/lib/api";
-import { Activity, AlertCircle, Server } from "lucide-react";
+import { Activity, AlertCircle, Server, RefreshCw } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 export function HealthCheck() {
@@ -38,16 +38,15 @@ export function HealthCheck() {
     }
   };
 
+  // Initial health check on component mount
   useEffect(() => {
     checkHealth();
-    // Check health every 30 seconds
-    const interval = setInterval(checkHealth, 30000);
-    return () => clearInterval(interval);
+    // No interval setting for auto refresh
   }, []);
 
   return (
     <TooltipProvider>
-      <div className="fixed bottom-4 right-4">
+      <div className="fixed bottom-4 right-4 flex gap-2">
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
@@ -63,7 +62,9 @@ export function HealthCheck() {
                   : "bg-white/80 text-[#4A4036] border-[#E38C40]/20"
               }`}
             >
-              {status === "unhealthy" ? (
+              {isChecking ? (
+                <RefreshCw className="h-4 w-4 animate-spin" />
+              ) : status === "unhealthy" ? (
                 <AlertCircle className="h-4 w-4" />
               ) : (
                 <Activity className="h-4 w-4" />
