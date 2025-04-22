@@ -233,9 +233,24 @@ export function QueryForm() {
             [&_li]:my-1 [&_li]:pl-2
             prose-pre:bg-white/50 prose-pre:p-4 prose-pre:rounded-lg
             prose-code:text-[#4A4036] prose-code:bg-white/50 prose-code:px-1 prose-code:rounded
+            prose-table:border-collapse prose-table:my-4 prose-table:w-full
+            prose-th:border prose-th:border-[#E38C40]/20 prose-th:p-2 prose-th:bg-[#F9B054]/10
+            prose-td:border prose-td:border-[#E38C40]/20 prose-td:p-2
             whitespace-pre-wrap break-words"
           >
-            <ReactMarkdown>
+            <ReactMarkdown components={{
+              table: ({node, ...props}) => (
+                <div className="overflow-x-auto my-4">
+                  <table className="border-collapse w-full" {...props} />
+                </div>
+              ),
+              th: ({node, ...props}) => (
+                <th className="border border-[#E38C40]/20 p-2 bg-[#F9B054]/10 text-left" {...props} />
+              ),
+              td: ({node, ...props}) => (
+                <td className="border border-[#E38C40]/20 p-2" {...props} />
+              )
+            }}>
               {response}
             </ReactMarkdown>
           </div>

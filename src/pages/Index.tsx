@@ -34,7 +34,7 @@ const Index = () => {
                 onClick={() => setActiveTab("indexer")}
                 className={`px-6 py-3 rounded-lg transition-all duration-200 ${
                   activeTab === "indexer"
-                    ? "bg-[#F9B054] text-white shadow-lg shadow-[#F9B054]/20"
+                    ? "bg-[#E38C40] text-white shadow-lg shadow-[#E38C40]/20"
                     : "bg-[#F9B054]/10 text-[#4A4036] hover:bg-[#F9B054]/20"
                 }`}
               >
@@ -44,7 +44,7 @@ const Index = () => {
                 onClick={() => setActiveTab("graph")}
                 className={`px-6 py-3 rounded-lg transition-all duration-200 ${
                   activeTab === "graph"
-                    ? "bg-[#F9B054] text-white shadow-lg shadow-[#F9B054]/20"
+                    ? "bg-[#E38C40] text-white shadow-lg shadow-[#E38C40]/20"
                     : "bg-[#F9B054]/10 text-[#4A4036] hover:bg-[#F9B054]/20"
                 }`}
               >
